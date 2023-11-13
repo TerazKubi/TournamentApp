@@ -28,7 +28,7 @@ namespace TournamentApp.Repository
             return Save();
         }
 
-        public User GetById(int id)
+        public User GetUser(int id)
         {
             return _context.Users.Where(user => user.Id == id).FirstOrDefault();
         }
@@ -48,6 +48,11 @@ namespace TournamentApp.Repository
         public bool UserExists(int userId)
         {
             return _context.Users.Any(user => user.Id == userId);
+        }
+
+        public bool ValidateUser(string email)
+        {
+            return _context.Users.Any(user => user.Email == email);
         }
     }
 }

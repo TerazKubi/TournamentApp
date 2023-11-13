@@ -52,6 +52,10 @@ namespace TournamentApp.Data
                 entity.HasMany(u => u.Posts)
                     .WithOne(p => p.Author)
                     .HasForeignKey(p => p.AuthorId);
+                //user 1-* comments
+                entity.HasMany(u => u.Comments)
+                    .WithOne(c => c.Author)
+                    .HasForeignKey(c => c.AuthorId);
             });
 
             modelBuilder.Entity<Post>(entity =>

@@ -19,5 +19,6 @@
         public Player Player { get; set; }
         public int PlayerId { get; set; }
         public List<Post> Posts { get; set; } = new List<Post>();
+        public List<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

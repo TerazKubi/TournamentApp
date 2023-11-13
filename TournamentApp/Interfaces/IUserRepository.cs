@@ -5,8 +5,9 @@ namespace TournamentApp.Interfaces
     public interface IUserRepository
     {
         List<User> GetUsers();
-        User GetById(int id);
+        User GetUser(int id);
         bool CreateUser(User user);
         bool UserExists(int userId);
+        bool ValidateUser(string email);
     }
 }

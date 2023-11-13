@@ -1,4 +1,5 @@
-﻿using TournamentApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -31,7 +32,8 @@ namespace TournamentApp.Repository
 
         public List<Post> GetPosts()
         {
-            return _context.Posts.ToList();
+            
+            return _context.Posts.Include(p => p.Comments).ToList();
         }
 
         public List<Post> GetPostsByUserId(int userId)

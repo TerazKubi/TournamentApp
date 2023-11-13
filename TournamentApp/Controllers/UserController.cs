@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using TournamentApp.Dto;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -9,16 +11,19 @@ namespace TournamentApp.Controllers
     public class UserController : Controller
     {
         private readonly IUserRepository _userRepository;
-        public UserController(IUserRepository userRepository)
+        private readonly IMapper _mapper;
+        public UserController(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(List<User>))]
         public IActionResult GetUsers()
         {
-            var users = _userRepository.GetUsers();
+            //var users = _userRepository.GetUsers();
+            var users = _mapper.Map<List<UserDto>>(_userRepository.GetUsers());
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -36,6 +41,8 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             //check if already exists
+            if(_userRepository.ValidateUser(user.Email))
+                return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -61,8 +68,8 @@ namespace TournamentApp.Controllers
             if (!_userRepository.UserExists(userId))
                 return NotFound();
 
-            //var pokemon = _mapper.Map<PokemonDto>(_pokemonRepository.GetPokemon(pokeId));
-            var user = _userRepository.GetById(userId);
+            var user = _mapper.Map<UserDto>(_userRepository.GetUser(userId));
+            //var user = _userRepository.GetById(userId);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using TournamentApp.Dto;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -11,17 +13,22 @@ namespace TournamentApp.Controllers
     {
         private readonly IPostRepository _postRepository;
         private readonly IUserRepository _userRepository;
-        public PostController(IPostRepository postRepository, IUserRepository userRepository)
+        private readonly IMapper _mapper;
+        public PostController(IPostRepository postRepository, 
+            IUserRepository userRepository,
+            IMapper mapper)
         {
             _postRepository = postRepository;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<Post>))]
+        [ProducesResponseType(200, Type = typeof(List<PostDto>))]
         public IActionResult GetPosts()
         {
-            var posts = _postRepository.GetPosts();
+            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetPosts());
+
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -37,7 +44,7 @@ namespace TournamentApp.Controllers
             if (post == null)
                 return BadRequest(ModelState);
 
-            //check if already exists
+            
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -55,15 +62,15 @@ namespace TournamentApp.Controllers
         }
 
         [HttpGet("byPostId/{postId}")]
-        [ProducesResponseType(200, Type = typeof(Post))]
+        [ProducesResponseType(200, Type = typeof(PostDto))]
         [ProducesResponseType(400)]
         public IActionResult GetPostById(int postId)
         {
             if (!_postRepository.PostExists(postId))
                 return NotFound();
 
-            //var pokemon = _mapper.Map<PokemonDto>(_pokemonRepository.GetPokemon(pokeId));
-            var user = _postRepository.GetPostById(postId);
+            var user = _mapper.Map<PostDto>(_postRepository.GetPostById(postId));
+            
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -80,7 +87,8 @@ namespace TournamentApp.Controllers
             if (!_userRepository.UserExists(userId))
                 return NotFound();
 
-            var posts = _postRepository.GetPostsByUserId(userId);
+            
+            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetPostsByUserId(userId));
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
