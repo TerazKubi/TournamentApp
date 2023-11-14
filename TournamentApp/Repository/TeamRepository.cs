@@ -1,4 +1,5 @@
-﻿using TournamentApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -13,22 +14,41 @@ namespace TournamentApp.Repository
         }
         public bool CreateTeam(Team team)
         {
-            throw new NotImplementedException();
+            _context.Teams.Add(team);
+            return Save();
         }
 
-        public User GetById(int id)
+        public bool DelteTeam(Team team)
         {
-            throw new NotImplementedException();
+            _context.Remove(team);
+            return Save();
+        }
+
+        public Team GetById(int id)
+        {
+            return _context.Teams.Where(t => t.Id == id).FirstOrDefault();
         }
 
         public List<Team> GetTeams()
         {
-            throw new NotImplementedException();
+            return _context.Teams.Include(t => t.Players).ToList();
         }
 
         public bool TeamExists(int teamId)
         {
-            throw new NotImplementedException();
+            return _context.Teams.Any(t => t.Id == teamId);
+        }
+
+        public bool UpdateTeam(Team team)
+        {
+            _context.Update(team);
+            return Save();
+        }
+
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved > 0 ? true : false;
         }
     }
 }

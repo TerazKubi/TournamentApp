@@ -13,22 +13,42 @@ namespace TournamentApp.Repository
         }
         public bool CreatePlayer(Player player)
         {
-            throw new NotImplementedException();
+            _context.Players.Add(player);
+            return Save();
+        }
+
+        public bool DeletePlayer(Player player)
+        {
+            _context.Remove(player);
+            return Save();
         }
 
         public Player GetById(int id)
         {
-            throw new NotImplementedException();
+            return _context.Players.Where(p => p.Id == id).FirstOrDefault();
         }
 
         public List<Player> GetPlayers()
         {
-            throw new NotImplementedException();
+            return _context.Players.ToList();
         }
 
         public bool PlayerExists(int playerId)
         {
-            throw new NotImplementedException();
+            return _context.Players.Any(p => p.Id == playerId);
         }
+
+        public bool UpdatePlayer(Player player)
+        {
+            _context.Update(player);
+            return Save();
+        }
+
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved > 0 ? true : false;
+        }
+
     }
 }

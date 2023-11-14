@@ -21,6 +21,9 @@ builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IOrganizerRepository, OrganizerRepository>();
+//builder.Services.AddScoped<IGameRepository, GameRepository>();
+//builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 
 
 

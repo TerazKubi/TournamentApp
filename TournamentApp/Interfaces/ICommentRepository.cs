@@ -9,6 +9,7 @@ namespace TournamentApp.Interfaces
         Comment GetCommentById(int id);
         bool CreateComment(Comment comment);
         bool DeleteComment(Comment comment);
+        bool UpdateComment(Comment comment);
 
         bool CommentExist(int commentId);
 

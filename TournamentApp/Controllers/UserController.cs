@@ -19,7 +19,7 @@ namespace TournamentApp.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<User>))]
+        [ProducesResponseType(200, Type = typeof(List<UserDto>))]
         public IActionResult GetUsers()
         {
             //var users = _userRepository.GetUsers();
@@ -35,22 +35,25 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateUser([FromBody] User user)
+        public IActionResult CreateUser([FromBody] UserDto userCreate)
         {
-            if (user == null)
+            if (userCreate == null)
                 return BadRequest(ModelState);
 
             //check if already exists
-            if(_userRepository.ValidateUser(user.Email))
+            if(_userRepository.ValidateUser(userCreate.Email))
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            
+            var userMap = _mapper.Map<User>(userCreate);
+
+            //testing creating with DTO
+            userMap.PasswordHash = "test";
 
 
-            if (!_userRepository.CreateUser(user))
+            if (!_userRepository.CreateUser(userMap))
             {
                 ModelState.AddModelError("", "Something went wrong while savin");
                 return StatusCode(500, ModelState);

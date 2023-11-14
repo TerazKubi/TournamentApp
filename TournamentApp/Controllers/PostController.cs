@@ -39,22 +39,25 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreatePost([FromBody] Post post)
+        public IActionResult CreatePost([FromBody] PostDto postCreate)
         {
-            if (post == null)
+            if (postCreate == null)
                 return BadRequest(ModelState);
-
-            
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            if(!_userRepository.UserExists(postCreate.AuthorId)) 
+                return BadRequest(ModelState);
+
+
+            var postMap = _mapper.Map<Post>(postCreate);
 
 
 
-            if (!_postRepository.CreatePost(post))
+            if (!_postRepository.CreatePost(postMap))
             {
-                ModelState.AddModelError("", "Something went wrong while savin");
+                ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);
             }
 
@@ -80,7 +83,7 @@ namespace TournamentApp.Controllers
 
 
         [HttpGet("byUserId/{userId}")]
-        [ProducesResponseType(200, Type = typeof(List<Post>))]
+        [ProducesResponseType(200, Type = typeof(List<PostDto>))]
         [ProducesResponseType(400)]
         public IActionResult GetPostsByUserId(int userId)
         {
@@ -94,6 +97,59 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(posts);
+        }
+
+        [HttpPut("{postId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdatePost(int postId, [FromBody] PostDto updatePost)
+        {
+            if (updatePost == null)
+                return BadRequest(ModelState);
+
+            if (postId != updatePost.Id)
+                return BadRequest(ModelState);
+
+            if (!_postRepository.PostExists(postId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var postMap = _mapper.Map<Post>(updatePost);
+
+            if (!_postRepository.UpdatePost(postMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating category");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{postId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeletePost(int postId)
+        {
+            if (!_postRepository.PostExists(postId))
+            {
+                return NotFound();
+            }
+
+            var postToDelete = _postRepository.GetPostById(postId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_postRepository.DeletePost(postToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting post");
+            }
+
+            return NoContent();
         }
     }
 }
