@@ -7,16 +7,19 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Players")]
     [ApiController]
     public class PlayerController : Controller
     {
         private readonly IPlayerRepository _playerRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
-        public PlayerController(IPlayerRepository playerRepository, IMapper mapper)
+        public PlayerController(IPlayerRepository playerRepository, IMapper mapper, 
+            IUserRepository userRepository)
         {
             _playerRepository = playerRepository;
+            _userRepository = userRepository;
             _mapper = mapper;
         }
 
@@ -53,7 +56,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreatePost([FromBody] PlayerDto playerCreate)
+        public IActionResult CreatePlayer([FromBody] PlayerDto playerCreate)
         {
             if (playerCreate == null)
                 return BadRequest(ModelState);
@@ -65,8 +68,15 @@ namespace TournamentApp.Controllers
             //if (!_userRepository.UserExists(postCreate.AuthorId))
             //    return BadRequest(ModelState);
 
+            if(!_userRepository.UserExists(playerCreate.UserId))
+                return BadRequest(ModelState);
+
+            
 
             var playerMap = _mapper.Map<Player>(playerCreate);
+
+            
+            
 
 
 
@@ -75,6 +85,17 @@ namespace TournamentApp.Controllers
                 ModelState.AddModelError("", "Something went wrong while creating Player");
                 return StatusCode(500, ModelState);
             }
+
+            var user = _userRepository.GetUser(playerCreate.UserId);
+            user.Player = playerMap;
+            user.PlayerId = playerMap.Id;
+
+            if (!_userRepository.UpdateUser(user))
+            {
+                ModelState.AddModelError("", "Something went wrong while updating User while creating Player");
+                return StatusCode(500, ModelState);
+            }
+            
 
             return Ok("Successfully created");
         }

@@ -8,15 +8,17 @@ using TournamentApp.Repository;
 namespace TournamentApp.Controllers
 
 {
-    [Route("api/[controller]")]
+    [Route("api/Teams")]
     [ApiController]
     public class TeamController : Controller
     {
         private readonly ITeamRepository _teamRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public TeamController(ITeamRepository teamRepository, IMapper mapper)
+        public TeamController(ITeamRepository teamRepository, IMapper mapper, IUserRepository userRepository)
         {
             _teamRepository = teamRepository;
+            _userRepository = userRepository;
             _mapper = mapper;
         }
 
@@ -63,6 +65,9 @@ namespace TournamentApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            if (!_userRepository.UserExists(teamCreate.UserId))
+                return BadRequest(ModelState);
+
             // check if team already exists
             //if (!_userRepository.UserExists(postCreate.AuthorId))
             //    return BadRequest(ModelState);
@@ -70,11 +75,19 @@ namespace TournamentApp.Controllers
 
             var teamMap = _mapper.Map<Team>(teamCreate);
 
-
-
             if (!_teamRepository.CreateTeam(teamMap))
             {
                 ModelState.AddModelError("", "Something went wrong while creating team");
+                return StatusCode(500, ModelState);
+            }
+
+            var user = _userRepository.GetUser(teamCreate.UserId);
+            user.Team = teamMap;
+            user.TeamId = teamMap.Id;
+
+            if (!_userRepository.UpdateUser(user))
+            {
+                ModelState.AddModelError("", "Something went wrong while updating User while creating Team");
                 return StatusCode(500, ModelState);
             }
 

@@ -28,6 +28,18 @@ namespace TournamentApp.Repository
             return Save();
         }
 
+        public bool UpdateUser(User user)
+        {
+            _context.Users.Update(user);
+            return Save();
+        }
+
+        public bool DeleteUser(User user)
+        {
+            _context.Remove(user);
+            return Save();
+        }
+
         public User GetUser(int id)
         {
             return _context.Users.Where(user => user.Id == id).FirstOrDefault();
@@ -44,6 +56,8 @@ namespace TournamentApp.Repository
             var saved = _context.SaveChanges();
             return saved > 0 ? true : false;
         }
+
+        
 
         public bool UserExists(int userId)
         {

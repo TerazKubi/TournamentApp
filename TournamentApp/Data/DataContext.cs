@@ -16,7 +16,7 @@ namespace TournamentApp.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Game> Games { get; set; }
-        public DbSet<Tournament> Tournament { get; set; }
+        public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<Organizer> Organizers { get; set; }
         //public DbSet<Score> Scores { get; set; }
 
