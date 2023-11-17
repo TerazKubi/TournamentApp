@@ -75,7 +75,9 @@ namespace TournamentApp.Controllers
 
             var playerMap = _mapper.Map<Player>(playerCreate);
 
-            
+            var user = _userRepository.GetUser(playerCreate.UserId);
+
+            playerMap.User = user;
             
 
 
@@ -86,7 +88,6 @@ namespace TournamentApp.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            var user = _userRepository.GetUser(playerCreate.UserId);
             user.Player = playerMap;
             user.PlayerId = playerMap.Id;
 

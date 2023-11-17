@@ -13,7 +13,8 @@ namespace TournamentApp.Dto
         //=========================================================================
         
         public int TeamId { get; set; }
-
+        public UserDto User { get; set; }
         public int UserId { get; set; }
+
     }
 }

@@ -12,12 +12,14 @@ namespace TournamentApp.Controllers
     public class OrganizerController : Controller
     {
         private readonly IOrganizerRepository _organizerRepository;
+        private readonly ITournamentRepository _tournamentRepository;
         private readonly IMapper _mapper;
 
-        public OrganizerController(IOrganizerRepository organizerRepository, IMapper mapper)
+        public OrganizerController(IOrganizerRepository organizerRepository, IMapper mapper, ITournamentRepository tournamentRepository)
         {
             _organizerRepository = organizerRepository;
             _mapper = mapper;
+            _tournamentRepository = tournamentRepository;
         }
 
         [HttpGet]
@@ -47,6 +49,22 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(organizer);
+        }
+        [HttpGet("{organizerId}/tournaments")]
+        [ProducesResponseType(200, Type = typeof(List<TournamentDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetOrganizerTournaments(int organizerId)
+        {
+            if (!_organizerRepository.OrganizerExists(organizerId))
+                return NotFound();
+
+
+            var tournaments = _mapper.Map<List<TournamentDto>>(_tournamentRepository.GetTournamentsByOrganizerId(organizerId));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(tournaments);
         }
 
         [HttpPost]

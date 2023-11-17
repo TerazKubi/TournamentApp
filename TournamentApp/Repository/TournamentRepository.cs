@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
@@ -26,12 +27,13 @@ namespace TournamentApp.Repository
 
         public Tournament GetTournament(int id)
         {
-            return _context.Tournaments.Where(t => t.Id == id).FirstOrDefault();
+            return _context.Tournaments.Where(t => t.Id == id)
+                .Include(t => t.Teams).Include(t => t.Games).FirstOrDefault();
         }
 
         public List<Tournament> GetTournaments()
         {
-            return _context.Tournaments.ToList();
+            return _context.Tournaments.Include(t => t.Games).ToList();
         }
 
         public bool TournamentExists(int id)
@@ -52,5 +54,9 @@ namespace TournamentApp.Repository
             return saved > 0 ? true : false;
         }
 
+        public List<Tournament> GetTournamentsByOrganizerId(int organizerId)
+        {
+            return _context.Tournaments.Where(t => t.OrganizerId == organizerId).ToList();
+        }
     }
 }

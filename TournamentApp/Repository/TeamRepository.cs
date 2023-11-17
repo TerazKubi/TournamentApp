@@ -50,5 +50,16 @@ namespace TournamentApp.Repository
             var saved = _context.SaveChanges();
             return saved > 0 ? true : false;
         }
+
+        public bool AllTeamsExists(List<int> teamIdList)
+        {
+            var existingTeamList = _context.Teams.Where(t => teamIdList.Contains(t.Id)).ToList();
+            return teamIdList.Count == existingTeamList.Count;
+        }
+
+        public List<Team> GetTeamsFromList(List<int> teamIdList)
+        {
+            return _context.Teams.Where(t => teamIdList.Contains(t.Id)).ToList();
+        }
     }
 }

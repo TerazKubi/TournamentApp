@@ -13,12 +13,14 @@ namespace TournamentApp.Controllers
     public class TournamentController : Controller
     {
         private readonly ITournamentRepository _tournamentRepository;
+        private readonly ITeamRepository _teamRepository;
         private readonly IMapper _mapper;
 
-        public TournamentController(IMapper mapper, ITournamentRepository tournamentRepository)
+        public TournamentController(IMapper mapper, ITournamentRepository tournamentRepository, ITeamRepository teamRepository)
         {
             _mapper = mapper;
             _tournamentRepository = tournamentRepository;
+            _teamRepository = teamRepository;
         }
 
         [HttpGet]
@@ -54,22 +56,32 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateTeam([FromBody] TournamentDto tournamentCreate)
+        public IActionResult CreateTournament([FromBody] CreateTournamentWrapperDro tournamentCreate)
         {
 
-            if (tournamentCreate == null)
+            if (tournamentCreate.Tournament == null || tournamentCreate.teamsIdList == null)
+                return BadRequest(ModelState);
+
+            if(tournamentCreate.teamsIdList.Count == 0)
+                return BadRequest(ModelState);
+
+            if(tournamentCreate.teamsIdList.Count != tournamentCreate.Tournament.TeamCount) 
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //if (!_tournamentRepository.TournamentExists(tournamentCreate.Id))
-            //    return BadRequest(ModelState);
+            //check if all teams exists
+            if(!_teamRepository.AllTeamsExists(tournamentCreate.teamsIdList)) 
+                return BadRequest(ModelState);
 
             
 
 
-            var tournamentMap = _mapper.Map<Tournament>(tournamentCreate);
+            var tournamentMap = _mapper.Map<Tournament>(tournamentCreate.Tournament);
+            tournamentMap.Teams = _teamRepository.GetTeamsFromList(tournamentCreate.teamsIdList);
+
+            
 
             if (!_tournamentRepository.CreateTournament(tournamentMap))
             {
@@ -77,17 +89,47 @@ namespace TournamentApp.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            //var user = _userRepository.GetUser(teamCreate.UserId);
-            //user.Team = teamMap;
-            //user.TeamId = teamMap.Id;
+            tournamentMap.Games.Add(new Game()
+            {
+                KeyCode = "asdasdasdasd",
+                StartDate = DateTime.Now,
+                TournamentId = tournamentMap.Id,
+                Team1Id = tournamentCreate.teamsIdList[0],
+                Team2Id = tournamentCreate.teamsIdList[1]
+            });
 
-            //if (!_userRepository.UpdateUser(user))
-            //{
-            //    ModelState.AddModelError("", "Something went wrong while updating User while creating Team");
-            //    return StatusCode(500, ModelState);
-            //}
+            if (!_tournamentRepository.UpdateTournament(tournamentMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while creating tournament");
+                return StatusCode(500, ModelState);
+            }
+
 
             return Ok("Successfully created");
+        }
+
+        [HttpDelete("{tournamentId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteTournament(int tournamentId)
+        {
+            if (!_tournamentRepository.TournamentExists(tournamentId))
+            {
+                return NotFound();
+            }
+
+            var tournamentToDelete = _tournamentRepository.GetTournament(tournamentId);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting tournament");
+            }
+
+            return NoContent();
         }
     }
 }

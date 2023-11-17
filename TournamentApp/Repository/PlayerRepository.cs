@@ -1,4 +1,5 @@
-﻿using TournamentApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -30,7 +31,7 @@ namespace TournamentApp.Repository
 
         public List<Player> GetPlayers()
         {
-            return _context.Players.ToList();
+            return _context.Players.Include(p => p.User).ToList();
         }
 
         public bool PlayerExists(int playerId)

@@ -126,6 +126,10 @@ namespace TournamentApp.Data
                 entity.HasKey(g => g.Id);
                 entity.Property(g => g.KeyCode).IsRequired();
                 entity.Property(g => g.State).HasDefaultValue("awaited");
+                entity.Property(g => g.Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Team1Sets).HasDefaultValue(0);
+                entity.Property(g => g.Team2Sets).HasDefaultValue(0);
 
                 //games *-1 team
                 entity.HasOne(g => g.Team1)
