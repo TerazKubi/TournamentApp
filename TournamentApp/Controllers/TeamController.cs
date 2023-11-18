@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -56,7 +57,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateTeam([FromBody] TeamDto teamCreate)
+        public IActionResult CreateTeam([FromBody] TeamCreate teamCreate)
         {
             
             if (teamCreate == null || teamCreate.UserId == 0)
@@ -68,9 +69,10 @@ namespace TournamentApp.Controllers
             if (!_userRepository.UserExists(teamCreate.UserId))
                 return BadRequest(ModelState);
 
-            // check if team already exists
-            //if (!_userRepository.UserExists(postCreate.AuthorId))
-            //    return BadRequest(ModelState);
+            // check if team already exists TODO
+
+            // check if given user is player if yes return bad request
+            
 
 
             var teamMap = _mapper.Map<Team>(teamCreate);

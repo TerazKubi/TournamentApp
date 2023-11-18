@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -59,7 +60,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateGame([FromBody] GameDto gameCreate)
+        public IActionResult CreateGame([FromBody] GameCreate gameCreate)
         {
 
             if (gameCreate == null)
@@ -132,6 +133,7 @@ namespace TournamentApp.Controllers
             if (game.Team1Sets == 3 || game.Team2Sets == 3) game.State = "Finished";
 
             //handle win TODO
+            // progress in bracket or something ...
 
             if (!_gameRepository.UpdateGame(game))
             {

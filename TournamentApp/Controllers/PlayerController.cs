@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -13,14 +14,16 @@ namespace TournamentApp.Controllers
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ITeamRepository _teamRepository;
         private readonly IMapper _mapper;
 
-        public PlayerController(IPlayerRepository playerRepository, IMapper mapper, 
-            IUserRepository userRepository)
+        public PlayerController(IPlayerRepository playerRepository, IMapper mapper,
+            IUserRepository userRepository, ITeamRepository teamRepository)
         {
             _playerRepository = playerRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _teamRepository = teamRepository;
         }
 
         [HttpGet]
@@ -56,22 +59,29 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreatePlayer([FromBody] PlayerDto playerCreate)
+        public IActionResult CreatePlayer([FromBody] PlayerCreate playerCreate)
         {
-            if (playerCreate == null)
+            if (playerCreate == null || playerCreate.UserId == 0 || playerCreate.TeamId == 0)
+            {
+                ModelState.AddModelError("errorMessage", "No data or no userId or teamId");
                 return BadRequest(ModelState);
+            }
+
+            if (!_userRepository.UserExists(playerCreate.UserId))
+            {
+                ModelState.AddModelError("errorMessage", "No user with given userId");
+                return BadRequest(ModelState);
+            }
+
+            if (!_teamRepository.TeamExists(playerCreate.TeamId))
+            {
+                ModelState.AddModelError("errorMessage", "No team with given teamId");
+                return BadRequest(ModelState);
+            }
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //validate player somehow c:
-            //if (!_userRepository.UserExists(postCreate.AuthorId))
-            //    return BadRequest(ModelState);
-
-            if(!_userRepository.UserExists(playerCreate.UserId))
-                return BadRequest(ModelState);
-
-            
 
             var playerMap = _mapper.Map<Player>(playerCreate);
 
@@ -99,6 +109,35 @@ namespace TournamentApp.Controllers
             
 
             return Ok("Successfully created");
+        }
+
+        [HttpPut("{playerId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdatePlayer(int playerId, [FromBody] PlayerDto updatePlayer)
+        {
+            if (updatePlayer == null)
+                return BadRequest(ModelState);
+
+            if (playerId != updatePlayer.Id)
+                return BadRequest(ModelState);
+
+            if (!_playerRepository.PlayerExists(playerId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var playerMap = _mapper.Map<Player>(updatePlayer);
+
+            if (!_playerRepository.UpdatePlayer(playerMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating player");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
         }
     }
 }

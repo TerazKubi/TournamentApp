@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -22,7 +23,6 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(200, Type = typeof(List<UserDto>))]
         public IActionResult GetUsers()
         {
-            //var users = _userRepository.GetUsers();
             var users = _mapper.Map<List<UserDto>>(_userRepository.GetUsers());
 
             if (!ModelState.IsValid)
@@ -35,7 +35,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateUser([FromBody] UserDto userCreate)
+        public IActionResult CreateUser([FromBody] UserCreate userCreate)
         {
             if (userCreate == null)
                 return BadRequest(ModelState);

@@ -13,8 +13,9 @@ namespace TournamentApp.Dto
         //=========================================================================
         
         public List<PlayerDto> Players { get; set; } = new List<PlayerDto>();
-        //public List<Score > Scores { get; set; } = new List<Score>();
-        
+        public List<Game> Team1Games { get; set; } = new List<Game>();
+        public List<Game> Team2Games { get; set; } = new List<Game>();
+
         public int UserId { get; set; }
     }
 }

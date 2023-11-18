@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -39,7 +40,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreatePost([FromBody] PostDto postCreate)
+        public IActionResult CreatePost([FromBody] PostCreate postCreate)
         {
             if (postCreate == null)
                 return BadRequest(ModelState);
@@ -121,7 +122,7 @@ namespace TournamentApp.Controllers
 
             if (!_postRepository.UpdatePost(postMap))
             {
-                ModelState.AddModelError("", "Something went wrong updating category");
+                ModelState.AddModelError("", "Something went wrong updating post");
                 return StatusCode(500, ModelState);
             }
 

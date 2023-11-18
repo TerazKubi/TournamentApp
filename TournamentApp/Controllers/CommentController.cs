@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -60,9 +61,9 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateComment([FromBody] CommentDto commentCreate)
+        public IActionResult CreateComment([FromBody] CommentCreate commentCreate)
         {
-            if (commentCreate == null)
+            if (commentCreate == null || commentCreate.AuthorId == 0 || commentCreate.PostId == 0)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)

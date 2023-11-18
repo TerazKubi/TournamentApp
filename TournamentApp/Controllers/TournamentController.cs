@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
@@ -56,7 +57,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateTournament([FromBody] CreateTournamentWrapperDro tournamentCreate)
+        public IActionResult CreateTournament([FromBody] TournamentCreateWrapper tournamentCreate)
         {
 
             if (tournamentCreate.Tournament == null || tournamentCreate.teamsIdList == null)
