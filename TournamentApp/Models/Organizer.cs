@@ -7,5 +7,8 @@
 
 
         public List<Tournament> Tournaments { get; set;} = new List<Tournament>();
+
+        public User User { get; set; }
+        public int UserId { get; set; }
     }
 }

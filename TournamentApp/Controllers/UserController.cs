@@ -4,6 +4,7 @@ using TournamentApp.Dto;
 using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
+using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
@@ -12,11 +13,14 @@ namespace TournamentApp.Controllers
     public class UserController : Controller
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
-        public UserController(IUserRepository userRepository, IMapper mapper)
+        public UserController(IUserRepository userRepository, IMapper mapper, IPostRepository postRepository)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _postRepository = postRepository;
+            
         }
 
         [HttpGet]
@@ -79,5 +83,25 @@ namespace TournamentApp.Controllers
 
             return Ok(user);
         }
+
+        [HttpGet("{userId}/posts")]
+        [ProducesResponseType(200, Type = typeof(List<PostDto>))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public IActionResult GetUserPosts(int userId)
+        {
+            if (!_userRepository.UserExists(userId))
+                return NotFound();
+
+
+            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetPostsByUserId(userId));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(posts);
+        }
+
+        
     }
 }

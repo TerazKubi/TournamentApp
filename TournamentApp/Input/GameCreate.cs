@@ -3,7 +3,7 @@
     public class GameCreate
     {
         public string KeyCode { get; set; }
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
 
 
@@ -14,8 +14,8 @@
         public int TournamentId { get; set; }
 
 
-        public int Team1Id { get; set; }
+        public int? Team1Id { get; set; }
 
-        public int Team2Id { get; set; }
+        public int? Team2Id { get; set; }
     }
 }

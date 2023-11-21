@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using TournamentApp.Dto;
 using TournamentApp.Input;
 using TournamentApp.Interfaces;
@@ -8,20 +9,23 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Posts")]
     [ApiController]
     public class PostController : Controller
     {
         private readonly IPostRepository _postRepository;
+        private readonly ICommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public PostController(IPostRepository postRepository, 
+        public PostController(IPostRepository postRepository,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _commentRepository = commentRepository;
         }
 
         [HttpGet]
@@ -65,7 +69,7 @@ namespace TournamentApp.Controllers
             return Ok("Successfully created");
         }
 
-        [HttpGet("byPostId/{postId}")]
+        [HttpGet("{postId}")]
         [ProducesResponseType(200, Type = typeof(PostDto))]
         [ProducesResponseType(400)]
         public IActionResult GetPostById(int postId)
@@ -82,23 +86,24 @@ namespace TournamentApp.Controllers
             return Ok(user);
         }
 
-
-        [HttpGet("byUserId/{userId}")]
+        [HttpGet("{postId}/comments")]
         [ProducesResponseType(200, Type = typeof(List<PostDto>))]
         [ProducesResponseType(400)]
-        public IActionResult GetPostsByUserId(int userId)
+        [ProducesResponseType(404)]
+        public IActionResult GetPostComments(int postId)
         {
-            if (!_userRepository.UserExists(userId))
+            if (!_postRepository.PostExists(postId))
                 return NotFound();
 
-            
-            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetPostsByUserId(userId));
+
+            var comments = _mapper.Map<List<CommentDto>>(_commentRepository.GetCommentsByPostId(postId));
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(posts);
+            return Ok(comments);
         }
+
 
         [HttpPut("{postId}")]
         [ProducesResponseType(400)]

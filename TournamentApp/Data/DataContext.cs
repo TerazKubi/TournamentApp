@@ -48,6 +48,13 @@ namespace TournamentApp.Data
                     .WithOne(p => p.User)
                     .HasForeignKey<Player>(p => p.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+
+                //user 1-1 organizer
+                entity.HasOne(u => u.Organizer)
+                .WithOne(o => o.User)
+                .HasForeignKey<Organizer>(o => o.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
                 //user 1-* posts
                 entity.HasMany(u => u.Posts)
                     .WithOne(p => p.Author)
@@ -55,7 +62,8 @@ namespace TournamentApp.Data
                 //user 1-* comments
                 entity.HasMany(u => u.Comments)
                     .WithOne(c => c.Author)
-                    .HasForeignKey(c => c.AuthorId);
+                    .HasForeignKey(c => c.AuthorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<Post>(entity =>
@@ -106,8 +114,6 @@ namespace TournamentApp.Data
             modelBuilder.Entity<Tournament>(entity =>
             {
                 entity.HasKey(tr => tr.Id);
-                entity.Property(tr => tr.StartDate).IsRequired();
-                entity.Property(tr => tr.TeamCount).IsRequired();
                 entity.Property(tr => tr.EliminationAlgorithm).IsRequired();
                 entity.Property(tr => tr.State).HasDefaultValue("awaited");
 
@@ -141,19 +147,11 @@ namespace TournamentApp.Data
                     .HasForeignKey(g => g.Team2Id)
                     .OnDelete(DeleteBehavior.ClientSetNull);
 
-                //game 1-*scores
-                //entity.HasMany(g => g.Scores)
-                //    .WithOne(s => s.Game)
-                //    .HasForeignKey(s => s.GameId);
+                
 
             });
 
-            //modelBuilder.Entity<Score>(entity =>
-            //{
-            //    entity.HasKey(s => s.Id);
-            //    entity.Property(s => s.SetPoints).HasDefaultValue(0);
-            //    entity.Property(s => s.Points).HasDefaultValue(0);
-            //});
+            
         }
     }
 }

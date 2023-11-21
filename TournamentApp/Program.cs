@@ -32,18 +32,45 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var server = builder.Configuration["DatabaseServer"] ?? "localhost";
+    var port = builder.Configuration["DatabasePort"] ?? "1433";
+    var user = builder.Configuration["DatabaseUser"] ?? "SA";
+    var password = builder.Configuration["DatabasePassword"] ?? "";
+    var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
+   
+
+
+    var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
+    options.UseSqlServer(connectionString);
 });
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    Console.WriteLine("Checking for database......");
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<DataContext>();
+
+    // Ensure the database is created
+    Console.WriteLine("ENSURING DB CREATED......");
+    dbContext.Database.EnsureCreated();
+
+    // Apply pending migrations
+    //Console.WriteLine("APPLYING MIGRATIONS...........");
+    //dbContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

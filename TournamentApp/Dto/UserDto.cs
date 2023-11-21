@@ -11,7 +11,8 @@ namespace TournamentApp.Dto
         public string Email { get; set; }
         public DateTime LastLogin { get; set; }
 
-        public int TeamId { get; set; }
-        public int PlayerId { get; set; }
+        public int? TeamId { get; set; }
+        public int? PlayerId { get; set; }
+        public int? OrganizerId { get; set; }
     }
 }

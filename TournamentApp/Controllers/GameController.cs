@@ -72,8 +72,19 @@ namespace TournamentApp.Controllers
             if (!_tournamentRepository.TournamentExists(gameCreate.TournamentId))
                 return BadRequest(ModelState);
 
-            if(!_teamRepository.TeamExists(gameCreate.Team1Id) || !_teamRepository.TeamExists(gameCreate.Team2Id))
+
+            // validate here like in updategame
+            if (gameCreate.Team1Id != null && !_teamRepository.TeamExists((int)gameCreate.Team1Id))
+            {
+                ModelState.AddModelError("errorMessage", "team 1 doesnt exists");
                 return BadRequest(ModelState);
+            }
+
+            if (gameCreate.Team2Id != null && !_teamRepository.TeamExists((int)gameCreate.Team2Id))
+            {
+                ModelState.AddModelError("errorMessage", "team 2 doesnt exists");
+                return BadRequest(ModelState);
+            }
 
 
 
@@ -138,6 +149,49 @@ namespace TournamentApp.Controllers
             if (!_gameRepository.UpdateGame(game))
             {
                 ModelState.AddModelError("", "Something went wrong updating category");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
+
+
+        [HttpPut("{gameId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdateGame(int gameId, [FromBody] GameDto updateGame)
+        {
+            if (updateGame == null)
+                return BadRequest(ModelState);
+
+            if (gameId != updateGame.Id)
+                return BadRequest(ModelState);
+
+            if (!_gameRepository.GameExists(gameId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            if(updateGame.Team1Id != null && !_teamRepository.TeamExists((int)updateGame.Team1Id)) 
+            {
+                ModelState.AddModelError("errorMessage", "team 1 doesnt exists");            
+                return BadRequest(ModelState);
+            }
+            
+            if (updateGame.Team2Id != null && !_teamRepository.TeamExists((int)updateGame.Team2Id)) 
+            {
+                ModelState.AddModelError("errorMessage", "team 2 doesnt exists");
+                return BadRequest(ModelState);
+            } 
+            
+
+            var gameMap = _mapper.Map<Game>(updateGame);
+
+            if (!_gameRepository.UpdateGame(gameMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating game");
                 return StatusCode(500, ModelState);
             }
 

@@ -93,10 +93,14 @@ namespace TournamentApp.Controllers
             tournamentMap.Games.Add(new Game()
             {
                 KeyCode = "asdasdasdasd",
-                StartDate = DateTime.Now,
                 TournamentId = tournamentMap.Id,
                 Team1Id = tournamentCreate.teamsIdList[0],
                 Team2Id = tournamentCreate.teamsIdList[1]
+            });
+            tournamentMap.Games.Add(new Game()
+            {
+                KeyCode = "dsaasdadadasdadasd",
+                TournamentId = tournamentMap.Id,
             });
 
             if (!_tournamentRepository.UpdateTournament(tournamentMap))

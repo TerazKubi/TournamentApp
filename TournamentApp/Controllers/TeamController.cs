@@ -54,6 +54,23 @@ namespace TournamentApp.Controllers
             return Ok(team);
         }
 
+        [HttpGet("{teamId}/players")]
+        [ProducesResponseType(200, Type = typeof(List<PlayerDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetTeamPlayers(int teamId)
+        {
+            if (!_teamRepository.TeamExists(teamId))
+                return NotFound();
+
+            var players = _mapper.Map<List<PlayerDto>>(_teamRepository.GetPlayers(teamId));
+
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(players);
+        }
+
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]

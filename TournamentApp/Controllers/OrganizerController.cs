@@ -1,25 +1,28 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Organizers")]
     [ApiController]
     public class OrganizerController : Controller
     {
         private readonly IOrganizerRepository _organizerRepository;
         private readonly ITournamentRepository _tournamentRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
-        public OrganizerController(IOrganizerRepository organizerRepository, IMapper mapper, ITournamentRepository tournamentRepository)
+        public OrganizerController(IOrganizerRepository organizerRepository, IMapper mapper, ITournamentRepository tournamentRepository, IUserRepository userRepository)
         {
             _organizerRepository = organizerRepository;
             _mapper = mapper;
             _tournamentRepository = tournamentRepository;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
@@ -78,17 +81,30 @@ namespace TournamentApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //if (!_organizerRepository.OrganizerExists(organizerCreate.Id))
-            //    return BadRequest(ModelState);
+            if(!_userRepository.UserExists(organizerCreate.UserId)) 
+                return BadRequest(ModelState);
 
 
 
             var organizerMap = _mapper.Map<Organizer>(organizerCreate);
 
+            var user = _userRepository.GetUser(organizerCreate.UserId);
+
+            organizerMap.User = user;
+
 
             if (!_organizerRepository.CreateOrganizer(organizerMap))
             {
                 ModelState.AddModelError("", "Something went wrong while creating organizer");
+                return StatusCode(500, ModelState);
+            }
+
+            user.Organizer = organizerMap;
+            user.OrganizerId = organizerMap.Id;
+
+            if (!_userRepository.UpdateUser(user))
+            {
+                ModelState.AddModelError("", "Something went wrong while updating User while creating Organizer");
                 return StatusCode(500, ModelState);
             }
 

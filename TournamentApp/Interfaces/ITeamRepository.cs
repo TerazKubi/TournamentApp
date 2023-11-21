@@ -6,6 +6,7 @@ namespace TournamentApp.Interfaces
     {
         List<Team> GetTeams();
         List<Team> GetTeamsFromList(List<int> teamIdList);
+        List<Player> GetPlayers(int teamId);
         Team GetById(int id);
         bool CreateTeam(Team team);
         bool UpdateTeam(Team team);

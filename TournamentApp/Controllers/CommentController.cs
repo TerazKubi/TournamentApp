@@ -8,7 +8,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Comments")]
     [ApiController]
     public class CommentController : Controller
     {
@@ -29,7 +29,7 @@ namespace TournamentApp.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("comments")]
+        [HttpGet]
         [ProducesResponseType(200, Type = typeof(List<CommentDto>))]
         public IActionResult GetComments()
         {
@@ -41,22 +41,7 @@ namespace TournamentApp.Controllers
             return Ok(comments);
         }
 
-        [HttpGet("comments/{postId}")]
-        [ProducesResponseType(200, Type = typeof(List<Comment>))]
-        [ProducesResponseType(400)]
-        public IActionResult GetPostComments(int postId)
-        {
-            if (!_postRepository.PostExists(postId))
-                return NotFound();
-                
-         
-            var comments = _mapper.Map<List<CommentDto>>(_commentRepository.GetCommentsByPostId(postId));
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(comments);
-        }
+        
 
         [HttpPost]
         [ProducesResponseType(204)]
@@ -87,10 +72,10 @@ namespace TournamentApp.Controllers
             return Ok("Successfully created");
         }
 
-        [HttpGet("byCommentId/{commentId}")]
+        [HttpGet("{commentId}")]
         [ProducesResponseType(200, Type = typeof(Comment))]
         [ProducesResponseType(400)]
-        public IActionResult GetPostById(int commentId)
+        public IActionResult GetComment(int commentId)
         {
             if (!_commentRepository.CommentExist(commentId))
                 return NotFound();

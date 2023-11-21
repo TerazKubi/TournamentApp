@@ -12,8 +12,8 @@ using TournamentApp.Data;
 namespace TournamentApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231101205928_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20231120233107_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,7 +48,7 @@ namespace TournamentApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AuthorId")
+                    b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -84,7 +84,10 @@ namespace TournamentApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<int>("Round")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("State")
@@ -92,23 +95,31 @@ namespace TournamentApp.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("awaited");
 
-                    b.Property<int>("Team1Id")
+                    b.Property<int?>("Team1Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Team1Points")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Team1Sets")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
-                    b.Property<int>("Team2Id")
+                    b.Property<int?>("Team2Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Team2Points")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Team2Sets")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("TournamentId")
                         .HasColumnType("int");
@@ -135,7 +146,13 @@ namespace TournamentApp.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Organizers");
                 });
@@ -243,7 +260,7 @@ namespace TournamentApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
@@ -252,7 +269,7 @@ namespace TournamentApp.Migrations
                     b.Property<int>("OrganizerId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("State")
@@ -267,7 +284,7 @@ namespace TournamentApp.Migrations
 
                     b.HasIndex("OrganizerId");
 
-                    b.ToTable("Tournament");
+                    b.ToTable("Tournaments");
                 });
 
             modelBuilder.Entity("TournamentApp.Models.User", b =>
@@ -296,14 +313,17 @@ namespace TournamentApp.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("OrganizerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PlayerId")
+                    b.Property<int?>("PlayerId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -329,8 +349,9 @@ namespace TournamentApp.Migrations
             modelBuilder.Entity("TournamentApp.Models.Comment", b =>
                 {
                     b.HasOne("TournamentApp.Models.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId");
+                        .WithMany("Comments")
+                        .HasForeignKey("AuthorId")
+                        .IsRequired();
 
                     b.HasOne("TournamentApp.Models.Post", "Post")
                         .WithMany("Comments")
@@ -347,13 +368,11 @@ namespace TournamentApp.Migrations
                 {
                     b.HasOne("TournamentApp.Models.Team", "Team1")
                         .WithMany("Team1Games")
-                        .HasForeignKey("Team1Id")
-                        .IsRequired();
+                        .HasForeignKey("Team1Id");
 
                     b.HasOne("TournamentApp.Models.Team", "Team2")
                         .WithMany("Team2Games")
-                        .HasForeignKey("Team2Id")
-                        .IsRequired();
+                        .HasForeignKey("Team2Id");
 
                     b.HasOne("TournamentApp.Models.Tournament", "Tournament")
                         .WithMany("Games")
@@ -366,6 +385,16 @@ namespace TournamentApp.Migrations
                     b.Navigation("Team2");
 
                     b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("TournamentApp.Models.Organizer", b =>
+                {
+                    b.HasOne("TournamentApp.Models.User", "User")
+                        .WithOne("Organizer")
+                        .HasForeignKey("TournamentApp.Models.Organizer", "UserId")
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TournamentApp.Models.Player", b =>
@@ -444,6 +473,10 @@ namespace TournamentApp.Migrations
 
             modelBuilder.Entity("TournamentApp.Models.User", b =>
                 {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Organizer");
+
                     b.Navigation("Player");
 
                     b.Navigation("Posts");

@@ -62,5 +62,10 @@ namespace TournamentApp.Repository
         {
             return _context.Teams.Where(t => teamIdList.Contains(t.Id)).ToList();
         }
+
+        public List<Player> GetPlayers(int teamId)
+        {
+            return _context.Players.Where(p => p.TeamId == teamId).Include(p => p.User).ToList();
+        }
     }
 }

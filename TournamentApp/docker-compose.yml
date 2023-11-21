@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment: 
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "TournamentAppDBterazRodzina!"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+  tournamentapi:
+    image: tournamentappimage
+    environment:
+      DatabaseServer: "mssql-server"
+      DatabasePort: "1433"
+      DatabaseUser: "SA"
+      DatabasePassword: "TournamentAppDBterazRodzina!"
+      DatabaseName: "TournamentAppDB"
+    ports:
+      - "8080:80"
+    depends_on: 
+      - mssql-server

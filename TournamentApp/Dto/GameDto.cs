@@ -9,6 +9,7 @@ namespace TournamentApp.Dto
         public string State { get; set; }
         public DateTime StartDate { get; set; }
 
+        public int Round { get; set; }
         public int Team1Points { get; set; }
         public int Team2Points { get; set; }
         public int Team1Sets { get; set; }
@@ -21,8 +22,8 @@ namespace TournamentApp.Dto
         public int TournamentId { get; set; }
 
         
-        public int Team1Id { get; set; }
+        public int? Team1Id { get; set; }
         
-        public int Team2Id { get; set; }
+        public int? Team2Id { get; set; }
     }
 }
