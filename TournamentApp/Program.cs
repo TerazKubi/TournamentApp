@@ -30,16 +30,27 @@ builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy => policy
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+    );
+});
+
 builder.Services.AddDbContext<DataContext>(options =>
 {
     //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+
     var server = builder.Configuration["DatabaseServer"] ?? "localhost";
     var port = builder.Configuration["DatabasePort"] ?? "1433";
     var user = builder.Configuration["DatabaseUser"] ?? "SA";
     var password = builder.Configuration["DatabasePassword"] ?? "";
     var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
-   
-
 
     var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
     options.UseSqlServer(connectionString);
@@ -68,6 +79,8 @@ using (var scope = app.Services.CreateScope())
 //    app.UseSwagger();
 //    app.UseSwaggerUI();
 //}
+
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();

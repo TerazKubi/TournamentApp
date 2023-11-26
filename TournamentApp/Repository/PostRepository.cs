@@ -25,6 +25,11 @@ namespace TournamentApp.Repository
             return Save();
         }
 
+        public List<Post> GetPlayerPosts(int playerId)
+        {
+            return _context.Posts.Where(post => post.Author.PlayerId == playerId).ToList();
+        }
+
         public Post GetPostById(int id)
         {
             return _context.Posts.Where(post => post.Id == id).FirstOrDefault();
@@ -39,6 +44,11 @@ namespace TournamentApp.Repository
         public List<Post> GetPostsByUserId(int userId)
         {
             return _context.Posts.Where(post => post.AuthorId == userId).ToList();
+        }
+
+        public List<Post> GetTeamPosts(int teamId)
+        {
+            return _context.Posts.Where(post => post.Author.TeamId == teamId).ToList();
         }
 
         public bool PostExists(int postId)

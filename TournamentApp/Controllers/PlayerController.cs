@@ -15,15 +15,17 @@ namespace TournamentApp.Controllers
         private readonly IPlayerRepository _playerRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITeamRepository _teamRepository;
+        private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
 
         public PlayerController(IPlayerRepository playerRepository, IMapper mapper,
-            IUserRepository userRepository, ITeamRepository teamRepository)
+            IUserRepository userRepository, ITeamRepository teamRepository, IPostRepository postRepository)
         {
             _playerRepository = playerRepository;
             _userRepository = userRepository;
             _mapper = mapper;
             _teamRepository = teamRepository;
+            _postRepository = postRepository;
         }
 
         [HttpGet]
@@ -138,6 +140,23 @@ namespace TournamentApp.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("{playerId}/posts")]
+        [ProducesResponseType(200, Type = typeof(List<PostDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetPlayerPostss(int playerId)
+        {
+            if (!_playerRepository.PlayerExists(playerId))
+                return NotFound();
+
+            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetPlayerPosts(playerId));
+
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(posts);
         }
     }
 }

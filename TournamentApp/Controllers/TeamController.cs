@@ -15,12 +15,14 @@ namespace TournamentApp.Controllers
     {
         private readonly ITeamRepository _teamRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
-        public TeamController(ITeamRepository teamRepository, IMapper mapper, IUserRepository userRepository)
+        public TeamController(ITeamRepository teamRepository, IMapper mapper, IUserRepository userRepository, IPostRepository postRepository)
         {
             _teamRepository = teamRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _postRepository = postRepository;
         }
 
 
@@ -69,6 +71,23 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(players);
+        }
+
+        [HttpGet("{teamId}/posts")]
+        [ProducesResponseType(200, Type = typeof(List<PostDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetTeamPostss(int teamId)
+        {
+            if (!_teamRepository.TeamExists(teamId))
+                return NotFound();
+
+            var posts = _mapper.Map<List<PostDto>>(_postRepository.GetTeamPosts(teamId));
+
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(posts);
         }
 
         [HttpPost]

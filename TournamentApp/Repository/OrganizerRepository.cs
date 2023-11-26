@@ -26,7 +26,7 @@ namespace TournamentApp.Repository
 
         public Organizer GetOrganizerById(int organizerId)
         {
-            return _context.Organizers.Where(o => o.Id == organizerId).FirstOrDefault();
+            return _context.Organizers.Where(o => o.Id == organizerId).Include(o => o.User).FirstOrDefault();
         }
 
         public List<Organizer> GetOrganizers()

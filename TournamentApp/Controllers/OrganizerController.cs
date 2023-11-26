@@ -73,7 +73,7 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateOrganizer([FromBody] OrganizerDto organizerCreate)
+        public IActionResult CreateOrganizer([FromBody] OrganizerCreate organizerCreate)
         {
             if (organizerCreate == null)
                 return BadRequest(ModelState);
