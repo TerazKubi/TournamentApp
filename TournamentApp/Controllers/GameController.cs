@@ -16,15 +16,17 @@ namespace TournamentApp.Controllers
         private readonly IGameRepository _gameRepository;
         private readonly ITournamentRepository _tournamentRepository;
         private readonly ITeamRepository _teamRepository;
+        private readonly IGameCommentRepository _gameCommentRepository;
         private readonly IMapper _mapper;
 
-        public GameController(IMapper mapper, IGameRepository gameRepository, 
-            ITournamentRepository tournamentRepository, ITeamRepository teamRepository)
+        public GameController(IMapper mapper, IGameRepository gameRepository,
+            ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IGameCommentRepository gameCommentRepository)
         {
             _mapper = mapper;
             _gameRepository = gameRepository;
             _tournamentRepository = tournamentRepository;
             _teamRepository = teamRepository;
+            _gameCommentRepository = gameCommentRepository;
         }
 
         [HttpGet]
@@ -55,6 +57,23 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(game);
+        }
+
+        [HttpGet("{gameId}/gameComments")]
+        [ProducesResponseType(200, Type = typeof(List<GameCommentDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetGameCommentByGameId(int gameId)
+        {
+            if (!_gameRepository.GameExists(gameId))
+                return NotFound();
+
+            var gameComments = _mapper.Map<GameCommentDto>(_gameCommentRepository.GetGameCommentsByGameId(gameId));
+
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(gameComments);
         }
 
         [HttpPost]

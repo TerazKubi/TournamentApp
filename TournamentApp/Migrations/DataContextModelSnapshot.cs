@@ -132,6 +132,38 @@ namespace TournamentApp.Migrations
                     b.ToTable("Games");
                 });
 
+            modelBuilder.Entity("TournamentApp.Models.GameComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("GameComments");
+                });
+
             modelBuilder.Entity("TournamentApp.Models.Organizer", b =>
                 {
                     b.Property<int>("Id")
@@ -384,6 +416,25 @@ namespace TournamentApp.Migrations
                     b.Navigation("Tournament");
                 });
 
+            modelBuilder.Entity("TournamentApp.Models.GameComment", b =>
+                {
+                    b.HasOne("TournamentApp.Models.User", "Author")
+                        .WithMany("GameComments")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TournamentApp.Models.Game", "Game")
+                        .WithMany("GameComments")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Game");
+                });
+
             modelBuilder.Entity("TournamentApp.Models.Organizer", b =>
                 {
                     b.HasOne("TournamentApp.Models.User", "User")
@@ -444,6 +495,11 @@ namespace TournamentApp.Migrations
                     b.Navigation("Organizer");
                 });
 
+            modelBuilder.Entity("TournamentApp.Models.Game", b =>
+                {
+                    b.Navigation("GameComments");
+                });
+
             modelBuilder.Entity("TournamentApp.Models.Organizer", b =>
                 {
                     b.Navigation("Tournaments");
@@ -471,6 +527,8 @@ namespace TournamentApp.Migrations
             modelBuilder.Entity("TournamentApp.Models.User", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("GameComments");
 
                     b.Navigation("Organizer");
 

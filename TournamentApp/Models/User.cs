@@ -22,5 +22,6 @@
         public int? OrganizerId { get; set; }
         public List<Post> Posts { get; set; } = new List<Post>();
         public List<Comment> Comments { get; set; } = new List<Comment>();
+        public List<GameComment> GameComments { get; set; } = new List<GameComment>();
     }
 }

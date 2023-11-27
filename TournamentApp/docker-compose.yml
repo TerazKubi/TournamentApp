@@ -10,7 +10,7 @@ services:
     ports:
       - "1433:1433"
   tournamentapi:
-    image: tournamentappimage
+    image: terazkubi/tournamentappimage
     environment:
       DatabaseServer: "mssql-server"
       DatabasePort: "1433"

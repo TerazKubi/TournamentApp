@@ -18,6 +18,7 @@ namespace TournamentApp.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<Organizer> Organizers { get; set; }
+        public DbSet<GameComment> GameComments { get; set; }
         //public DbSet<Score> Scores { get; set; }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -64,6 +65,11 @@ namespace TournamentApp.Data
                     .WithOne(c => c.Author)
                     .HasForeignKey(c => c.AuthorId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+
+                //user 1-* game comments
+                entity.HasMany(u => u.GameComments)
+                    .WithOne(gc => gc.Author)
+                    .HasForeignKey(gc => gc.AuthorId);
             });
 
             modelBuilder.Entity<Post>(entity =>
@@ -83,6 +89,12 @@ namespace TournamentApp.Data
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Text).IsRequired();
                 entity.Property(c => c.CreatedAt).HasDefaultValueSql("GETDATE()");
+            });
+
+            modelBuilder.Entity<GameComment>(entity => {
+                entity.HasKey(gc => gc.Id);
+                entity.Property(gc => gc.Text).IsRequired();
+                entity.Property(gc => gc.CreatedAt).HasDefaultValueSql("GETDATE()");
             });
 
             modelBuilder.Entity<Organizer>(entity => 
@@ -146,6 +158,10 @@ namespace TournamentApp.Data
                     .WithMany(t => t.Team2Games)
                     .HasForeignKey(g => g.Team2Id)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasMany<GameComment>(g => g.GameComments)
+                    .WithOne(gc => gc.Game)
+                    .HasForeignKey(gc => gc.GameId);
 
                 
 

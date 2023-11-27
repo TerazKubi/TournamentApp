@@ -92,7 +92,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateCategory(int commentId, [FromBody] CommentDto updateComment)
+        public IActionResult UpdateComment(int commentId, [FromBody] CommentDto updateComment)
         {
             if (updateComment == null)
                 return BadRequest(ModelState);

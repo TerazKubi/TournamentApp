@@ -41,7 +41,9 @@ namespace TournamentApp.Helper
             CreateMap<OrganizerDto, Organizer>();
             CreateMap<OrganizerCreate, Organizer>();
 
-            
+            CreateMap<GameComment, GameCommentDto>();
+            CreateMap<GameCommentDto, GameComment>();
+            CreateMap<GameCommentCreate, GameComment>();
             
             
         }
