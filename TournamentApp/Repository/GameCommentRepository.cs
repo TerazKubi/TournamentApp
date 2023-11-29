@@ -1,4 +1,5 @@
-﻿using TournamentApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 
@@ -32,7 +33,7 @@ namespace TournamentApp.Repository
         public List<GameComment> GetGameCommentsByGameId(int gameId)
         {
             return _context.GameComments
-                .Where(gameComment => gameComment.GameId == gameId).ToList();
+                .Where(gameComment => gameComment.GameId == gameId).Include(gameComment => gameComment.Author).ToList();
         }
 
         public bool UpdateGameComment(GameComment gameComment)

@@ -8,6 +8,7 @@ namespace TournamentApp.Dto
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public string City { get; set; }
         public int TeamCount { get; set; }
         public string EliminationAlgorithm { get; set; }
         public string State { get; set; }

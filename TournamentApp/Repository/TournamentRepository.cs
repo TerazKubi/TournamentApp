@@ -58,5 +58,19 @@ namespace TournamentApp.Repository
         {
             return _context.Tournaments.Where(t => t.OrganizerId == organizerId).ToList();
         }
+
+        public Game GetTournamentRootGame(int id)
+        {
+            var tournament = GetTournament(id);
+            var games = tournament.Games;
+            return games.OrderByDescending(g => g.Round).FirstOrDefault();
+        }
+
+        public Game GetTournamentGameWithOneTeamAsigned(int id)
+        {
+            var tournament = GetTournament(id);
+            var games = tournament.Games;
+            return games.Where(g => (g.Team1Id == null && g.Team2Id != null) || (g.Team1Id != null && g.Team2Id == null)).FirstOrDefault();
+        }
     }
 }

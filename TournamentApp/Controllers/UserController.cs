@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
 using TournamentApp.Dto;
 using TournamentApp.Input;
 using TournamentApp.Interfaces;
@@ -39,22 +40,22 @@ namespace TournamentApp.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateUser([FromBody] UserCreate userCreate)
+        public IActionResult CreateUser([FromBody] UserCreateWrapper userCreate)
         {
             if (userCreate == null)
                 return BadRequest(ModelState);
 
             //check if already exists
-            if(_userRepository.ValidateUser(userCreate.Email))
+            if(_userRepository.ValidateUser(userCreate.UserCreate.Email))
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userMap = _mapper.Map<User>(userCreate);
+            var userMap = _mapper.Map<User>(userCreate.UserCreate);
 
             //testing creating with DTO
-            userMap.PasswordHash = "test";
+            userMap.PasswordHash = HashPassword(userCreate.Password);
 
 
             if (!_userRepository.CreateUser(userMap))
@@ -102,6 +103,21 @@ namespace TournamentApp.Controllers
             return Ok(posts);
         }
 
-        
+        private string HashPassword(string password)
+        {
+            using SHA256 sha256 = SHA256.Create();
+            // Convert the password string to bytes
+            byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+
+            // Compute the hash value of the password bytes
+            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
+
+            // Convert the hashed bytes to a base64-encoded string
+            string hashedPassword = Convert.ToBase64String(hashBytes);
+
+            return hashedPassword;
+        }
+
+
     }
 }

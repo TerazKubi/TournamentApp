@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TournamentApp.Dto;
@@ -67,7 +68,7 @@ namespace TournamentApp.Controllers
             if (!_gameRepository.GameExists(gameId))
                 return NotFound();
 
-            var gameComments = _mapper.Map<GameCommentDto>(_gameCommentRepository.GetGameCommentsByGameId(gameId));
+            var gameComments = _mapper.Map<List<GameCommentDto>>(_gameCommentRepository.GetGameCommentsByGameId(gameId));
 
 
             if (!ModelState.IsValid)
@@ -133,46 +134,103 @@ namespace TournamentApp.Controllers
                 return BadRequest();
 
             var game = _gameRepository.GetGame(gameId);
-
-            if (game.State == "Finished")
+            if (game.Team1Id != teamId && game.Team2Id != teamId)
                 return BadRequest();
 
-            //ultra walidacja TODO: do zmiany na ładniejszy kod
-            if(game.Team1Id == teamId)
+            if (game.State == "finished")
+                return BadRequest();
+
+            if(game.Team1Id == null || game.Team2Id == null)
+                return BadRequest();
+
+            if (game.State == "awaited") game.State = "ongoing";
+
+
+            switch (game.CurrentSet)
             {
-                game.Team1Points++;
-                if (game.Team1Points == 2)
-                {
-                    game.Team1Points=0;
-                    game.Team2Points=0;
-                    game.Team1Sets++;
-                }
-            } else
+                case 1:
+                    game.Set1Team1Points += (game.Team1Id == teamId) ? 1 : 0;
+                    game.Set1Team2Points += (game.Team2Id == teamId) ? 1 : 0;
+
+                    break;
+                case 2:
+                    game.Set2Team1Points += (game.Team1Id == teamId) ? 1 : 0;
+                    game.Set2Team2Points += (game.Team2Id == teamId) ? 1 : 0;
+                    break;
+                case 3:
+                    game.Set3Team1Points += (game.Team1Id == teamId) ? 1 : 0;
+                    game.Set3Team2Points += (game.Team2Id == teamId) ? 1 : 0;
+                    break;
+                case 4:
+                    game.Set4Team1Points += (game.Team1Id == teamId) ? 1 : 0;
+                    game.Set4Team2Points += (game.Team2Id == teamId) ? 1 : 0;
+                    break;
+                case 5:
+                    game.Set5Team1Points += (game.Team1Id == teamId) ? 1 : 0;
+                    game.Set5Team2Points += (game.Team2Id == teamId) ? 1 : 0;
+                    break;
+                default:
+                    return BadRequest();
+            }
+
+            //increment current set
+            if (IsSetComplete(game))
             {
-                game.Team2Points++;
-                if(game.Team2Points == 2)
+                game.CurrentSet++;
+                game.Team1Sets += (game.Team1Id == teamId) ? 1 : 0;
+                game.Team2Sets += (game.Team2Id == teamId) ? 1 : 0;
+            }
+            //check if game complete
+            if (IsGameComplete(game)) 
+            {
+                game.State = "finished";
+                game.WinnerId = teamId;
+                
+                if(game.ParentId != null)
                 {
-                    game.Team2Points=0;
-                    game.Team1Points=0;
-                    game.Team2Sets++;
+                    if (!_gameRepository.GameExists((int)game.ParentId))
+                    {
+                        ModelState.AddModelError("", "No parent game with id: "+(int)game.ParentId);
+                        return BadRequest(ModelState);
+                    }
+
+                    var parentGame = _gameRepository.GetGame((int)game.ParentId);
+
+                    if (parentGame.Team1Id == null)
+                    {
+                        parentGame.Team1Id = game.WinnerId;
+                    }
+                    else if (parentGame.Team2Id == null)
+                    {
+                        parentGame.Team2Id = game.WinnerId;
+                    }
+
+                    //update parent game
+                    if (!_gameRepository.UpdateGame(parentGame))
+                    {
+                        ModelState.AddModelError("", "Something went wrong updating parent game");
+                        return StatusCode(500, ModelState);
+                    }
                 }
             }
 
+            
 
-            //check if win
-            if (game.Team1Sets == 3 || game.Team2Sets == 3) game.State = "Finished";
 
-            //handle win TODO
-            // progress in bracket or something ...
+            
+
+            
 
             if (!_gameRepository.UpdateGame(game))
             {
-                ModelState.AddModelError("", "Something went wrong updating category");
+                ModelState.AddModelError("", "Something went wrong updating game");
                 return StatusCode(500, ModelState);
             }
 
             return NoContent();
         }
+
+        
 
 
         [HttpPut("{gameId}")]
@@ -215,6 +273,64 @@ namespace TournamentApp.Controllers
             }
 
             return NoContent();
+        }
+
+        private bool IsSetComplete(Game game)
+        {
+            int team1Points, team2Points;
+            switch (game.CurrentSet)
+            {
+                case 1:
+                    team1Points = game.Set1Team1Points;
+                    team2Points = game.Set1Team2Points;
+                    break;
+                case 2:
+                    team1Points = game.Set2Team1Points;
+                    team2Points = game.Set2Team2Points;
+                    break;
+                case 3:
+                    team1Points = game.Set3Team1Points;
+                    team2Points = game.Set3Team2Points;
+                    break;
+                case 4:
+                    team1Points = game.Set4Team1Points;
+                    team2Points = game.Set4Team2Points;
+                    break;
+                case 5:
+                    team1Points = game.Set5Team1Points;
+                    team2Points = game.Set5Team2Points;
+                    break;
+                default:
+                    return false;
+            }
+
+            return (team1Points >= 5 || team2Points >= 5) && Math.Abs(team1Points - team2Points) >= 2;
+        }
+
+        private bool IsGameComplete(Game game)
+        {
+            return game.Team1Sets == 3 || game.Team2Sets == 3;
+        }
+
+        private void AdvanceInBracket(Game game)
+        {
+            if (game.ParentId != null) return;
+
+            if (!_gameRepository.GameExists((int)game.ParentId)) return;
+
+            var parentGame = _gameRepository.GetGame((int)game.ParentId);
+
+            if (parentGame.Team1Id == null)
+            {
+                parentGame.Team1Id = game.WinnerId;              
+            }
+            else if (parentGame.Team2Id == null)
+            {
+                parentGame.Team2Id = game.WinnerId;              
+            }
+
+            if(!_gameRepository.UpdateGame(parentGame)) return;
+
         }
     }
 }

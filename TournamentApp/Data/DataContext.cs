@@ -144,10 +144,19 @@ namespace TournamentApp.Data
                 entity.HasKey(g => g.Id);
                 entity.Property(g => g.KeyCode).IsRequired();
                 entity.Property(g => g.State).HasDefaultValue("awaited");
-                entity.Property(g => g.Team1Points).HasDefaultValue(0);
-                entity.Property(g => g.Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Set1Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Set1Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Set2Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Set2Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Set3Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Set3Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Set4Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Set4Team2Points).HasDefaultValue(0);
+                entity.Property(g => g.Set5Team1Points).HasDefaultValue(0);
+                entity.Property(g => g.Set5Team2Points).HasDefaultValue(0);
                 entity.Property(g => g.Team1Sets).HasDefaultValue(0);
                 entity.Property(g => g.Team2Sets).HasDefaultValue(0);
+                entity.Property(g => g.CurrentSet).HasDefaultValue(1);
 
                 //games *-1 team
                 entity.HasOne(g => g.Team1)
@@ -159,12 +168,41 @@ namespace TournamentApp.Data
                     .HasForeignKey(g => g.Team2Id)
                     .OnDelete(DeleteBehavior.ClientSetNull);
 
-                entity.HasMany<GameComment>(g => g.GameComments)
+                //games 1-* gamecomment
+                entity.HasMany(g => g.GameComments)
                     .WithOne(gc => gc.Game)
                     .HasForeignKey(gc => gc.GameId);
 
-                
 
+                // ======================================================
+                entity.HasOne(g => g.Winner).WithMany().HasForeignKey(g => g.WinnerId);
+
+                //entity.HasOne(g => g.Parent)
+                //    .WithOne().HasForeignKey<Game>(g => g.ParentId);
+
+                entity.HasMany(g => g.Children).WithOne(g => g.Parent).HasForeignKey(g => g.ParentId).OnDelete(DeleteBehavior.Restrict);
+
+
+                //entity.HasOne(g => g.LeftChild).WithOne().HasForeignKey<Game>(g => g.LeftChildId);
+                //entity.HasOne(g => g.RightChild).WithOne().HasForeignKey<Game>(g => g.RightChildId);
+
+
+                //entity.HasOne(g => g.LeftChild).WithOne().HasForeignKey(g => g.Left)
+
+            //    modelBuilder.Entity<BinaryTreeNode>()
+            //.HasOne(node => node.Parent)
+            //.WithMany()
+            //.HasForeignKey(node => node.ParentId);
+
+            //    modelBuilder.Entity<BinaryTreeNode>()
+            //        .HasOne(node => node.LeftChild)
+            //        .WithOne()
+            //        .HasForeignKey<BinaryTreeNode>(node => node.LeftChildId);
+
+            //    modelBuilder.Entity<BinaryTreeNode>()
+            //        .HasOne(node => node.RightChild)
+            //        .WithOne()
+            //        .HasForeignKey<BinaryTreeNode>(node => node.RightChildId);
             });
 
             

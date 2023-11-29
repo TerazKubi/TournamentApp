@@ -32,7 +32,7 @@ namespace TournamentApp.Repository
 
         public Game GetGame(int id)
         {
-            return _context.Games.Where(g => g.Id == id).FirstOrDefault();
+            return _context.Games.Where(g => g.Id == id).Include(g => g.GameComments).FirstOrDefault();
         }
 
         public List<Game> GetGames()
@@ -45,12 +45,23 @@ namespace TournamentApp.Repository
             _context.Update(game);
             return Save();
         }
-
+        public void CreateWithoutSave(Game game)
+        {
+            _context.Games.Add(game);
+        }
+        public void Save2()
+        {
+            _context.SaveChanges();
+        }
         public bool Save()
         {
             var saved = _context.SaveChanges();
             return saved > 0 ? true : false;
         }
 
+        //public Game GetTournamentRootGame(int tournamentId)
+        //{
+        //    return _context.Games.Where(g => g.TournamentId == tournamentId).Include(g => g.Children).OrderByDescending(g => g.Round).FirstOrDefault();
+        //}
     }
 }

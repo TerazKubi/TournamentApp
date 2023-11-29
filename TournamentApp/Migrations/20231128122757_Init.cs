@@ -103,6 +103,7 @@ namespace TournamentApp.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TeamCount = table.Column<int>(type: "int", nullable: false),
                     EliminationAlgorithm = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     State = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "awaited"),
@@ -183,17 +184,34 @@ namespace TournamentApp.Migrations
                     State = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "awaited"),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Round = table.Column<int>(type: "int", nullable: false),
-                    Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set1Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set1Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set2Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set2Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set3Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set3Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set4Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set4Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set5Team1Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Set5Team2Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     Team1Sets = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     Team2Sets = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    CurrentSet = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     TournamentId = table.Column<int>(type: "int", nullable: false),
                     Team1Id = table.Column<int>(type: "int", nullable: true),
-                    Team2Id = table.Column<int>(type: "int", nullable: true)
+                    Team2Id = table.Column<int>(type: "int", nullable: true),
+                    WinnerId = table.Column<int>(type: "int", nullable: true),
+                    ParentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Games", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Games_Games_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Games",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Games_Teams_Team1Id",
                         column: x => x.Team1Id,
@@ -202,6 +220,11 @@ namespace TournamentApp.Migrations
                     table.ForeignKey(
                         name: "FK_Games_Teams_Team2Id",
                         column: x => x.Team2Id,
+                        principalTable: "Teams",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Games_Teams_WinnerId",
+                        column: x => x.WinnerId,
                         principalTable: "Teams",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -285,6 +308,11 @@ namespace TournamentApp.Migrations
                 column: "GameId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Games_ParentId",
+                table: "Games",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Games_Team1Id",
                 table: "Games",
                 column: "Team1Id");
@@ -298,6 +326,11 @@ namespace TournamentApp.Migrations
                 name: "IX_Games_TournamentId",
                 table: "Games",
                 column: "TournamentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Games_WinnerId",
+                table: "Games",
+                column: "WinnerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Organizers_UserId",

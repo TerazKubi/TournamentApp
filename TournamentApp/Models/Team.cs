@@ -14,6 +14,9 @@
         public List<Game> Team2Games { get; set;} = new List<Game>();
         public List<Player > Players { get; set; } = new List<Player>();
         //public List<Score > Scores { get; set; } = new List<Score>();
+
+        
+
         public User User { get; set; }
         public int UserId { get; set; }
     }
