@@ -237,7 +237,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateGame(int gameId, [FromBody] GameDto updateGame)
+        public IActionResult UpdateGame(int gameId, [FromBody] GameUpdate updateGame)
         {
             if (updateGame == null)
                 return BadRequest(ModelState);
@@ -251,22 +251,15 @@ namespace TournamentApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            if(updateGame.Team1Id != null && !_teamRepository.TeamExists((int)updateGame.Team1Id)) 
-            {
-                ModelState.AddModelError("errorMessage", "team 1 doesnt exists");            
-                return BadRequest(ModelState);
-            }
+            var gameToUpdate = _gameRepository.GetGame(gameId);
+         
+            gameToUpdate.StartDate = updateGame.StartDate;
             
-            if (updateGame.Team2Id != null && !_teamRepository.TeamExists((int)updateGame.Team2Id)) 
-            {
-                ModelState.AddModelError("errorMessage", "team 2 doesnt exists");
-                return BadRequest(ModelState);
-            } 
             
 
-            var gameMap = _mapper.Map<Game>(updateGame);
+            //var gameMap = _mapper.Map<Game>(updateGame);
 
-            if (!_gameRepository.UpdateGame(gameMap))
+            if (!_gameRepository.UpdateGame(gameToUpdate))
             {
                 ModelState.AddModelError("", "Something went wrong updating game");
                 return StatusCode(500, ModelState);
