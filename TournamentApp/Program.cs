@@ -44,17 +44,17 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 
-    //var server = builder.Configuration["DatabaseServer"] ?? "localhost";
-    //var port = builder.Configuration["DatabasePort"] ?? "1433";
-    //var user = builder.Configuration["DatabaseUser"] ?? "SA";
-    //var password = builder.Configuration["DatabasePassword"] ?? "";
-    //var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
+    var server = builder.Configuration["DatabaseServer"] ?? "localhost";
+    var port = builder.Configuration["DatabasePort"] ?? "1433";
+    var user = builder.Configuration["DatabaseUser"] ?? "SA";
+    var password = builder.Configuration["DatabasePassword"] ?? "";
+    var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
 
-    //var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
-    //options.UseSqlServer(connectionString);
+    var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
+    options.UseSqlServer(connectionString);
 });
 
 var app = builder.Build();

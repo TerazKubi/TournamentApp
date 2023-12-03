@@ -61,14 +61,14 @@ namespace TournamentApp.Controllers
             return Ok(tournament);
         }
         [HttpGet("{tournamentId}/rootGame")]
-        [ProducesResponseType(200, Type = typeof(GameNoDetailsDto))]
+        [ProducesResponseType(200, Type = typeof(GameNode))]
         [ProducesResponseType(400)]
         public IActionResult GetTournamentRootGame(int tournamentId)
         {
             if (!_tournamentRepository.TournamentExists(tournamentId))
                 return NotFound();
 
-            var rootGame = _mapper.Map<GameNoDetailsDto>(_tournamentRepository.GetTournamentRootGame(tournamentId));
+            var rootGame = _mapper.Map<GameNode>(_tournamentRepository.GetTournamentRootGame(tournamentId));
 
 
             if (!ModelState.IsValid)

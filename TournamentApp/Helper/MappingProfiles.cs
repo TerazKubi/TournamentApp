@@ -24,6 +24,7 @@ namespace TournamentApp.Helper
 
             CreateMap<Game, GameDto>();
             CreateMap<Game, GameNoDetailsDto>();
+            CreateMap<Game, GameNode>();
             CreateMap<GameDto, Game>();
             CreateMap<GameCreate, Game>();
 
