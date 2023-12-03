@@ -32,10 +32,10 @@ namespace TournamentApp.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<TournamentDto>))]
+        [ProducesResponseType(200, Type = typeof(List<TournamentNoDetailsDto>))]
         public IActionResult GetTournaments()
         {
-            var tournaments = _mapper.Map<List<TournamentDto>>(_tournamentRepository.GetTournaments());
+            var tournaments = _mapper.Map<List<TournamentNoDetailsDto>>(_tournamentRepository.GetTournaments());
 
 
             if (!ModelState.IsValid)
@@ -61,14 +61,14 @@ namespace TournamentApp.Controllers
             return Ok(tournament);
         }
         [HttpGet("{tournamentId}/rootGame")]
-        [ProducesResponseType(200, Type = typeof(GameDto))]
+        [ProducesResponseType(200, Type = typeof(GameNoDetailsDto))]
         [ProducesResponseType(400)]
         public IActionResult GetTournamentRootGame(int tournamentId)
         {
             if (!_tournamentRepository.TournamentExists(tournamentId))
                 return NotFound();
 
-            var rootGame = _mapper.Map<GameDto>(_tournamentRepository.GetTournamentRootGame(tournamentId));
+            var rootGame = _mapper.Map<GameNoDetailsDto>(_tournamentRepository.GetTournamentRootGame(tournamentId));
 
 
             if (!ModelState.IsValid)
@@ -84,24 +84,42 @@ namespace TournamentApp.Controllers
         {
 
             if (tournamentCreate.Tournament == null || tournamentCreate.teamsIdList == null)
+            {
+                ModelState.AddModelError("errorMessage", "tournament or teamIdlist is null");
                 return BadRequest(ModelState);
+            }
 
             if(tournamentCreate.teamsIdList.Count == 0)
+            {
+                ModelState.AddModelError("errorMessage", "Empty teamIdList");
                 return BadRequest(ModelState);
+            }
 
-            if(tournamentCreate.teamsIdList.Count != tournamentCreate.Tournament.TeamCount) 
+            if(tournamentCreate.teamsIdList.Count != tournamentCreate.Tournament.TeamCount)
+            {
+                ModelState.AddModelError("errorMessage", "Team count is not equal to teamIdList count");
                 return BadRequest(ModelState);
+            }
 
-            if(tournamentCreate.Tournament.OrganizerId == 0 || 
+            if(tournamentCreate.Tournament.OrganizerId == 0 ||
                 !_organizerRepository.OrganizerExists(tournamentCreate.Tournament.OrganizerId))
+            {
+                ModelState.AddModelError("errorMessage", "no organizer with given id");
                 return BadRequest(ModelState);
+            }
 
             //check if all teams exists
             if (!_teamRepository.AllTeamsExists(tournamentCreate.teamsIdList))
+            {
+                ModelState.AddModelError("errorMessage", "One of the team from teamIdList doesnt exist");
                 return BadRequest(ModelState);
+            }
 
             if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("errorMessage", "modelState error");
                 return BadRequest(ModelState);
+            }
 
             
 

@@ -15,7 +15,21 @@ namespace TournamentApp.Dto
 
         //=========================================================================
         public int OrganizerId { get; set; }
-        public List<TeamDto> Teams { get; set; } = new List<TeamDto>();
-        public List<GameDto> Games { get; set; } = new List<GameDto>();
+        public List<TeamNoDetailsDto> Teams { get; set; } = new List<TeamNoDetailsDto>();
+        public List<GameNoDetailsDto> Games { get; set; } = new List<GameNoDetailsDto>();
+    }
+
+
+    public class TournamentNoDetailsDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string City { get; set; }
+        public int TeamCount { get; set; }
+
+        public int OrganizerId { get; set; }
+        public OrganizerDto Organizer { get; set; }
     }
 }

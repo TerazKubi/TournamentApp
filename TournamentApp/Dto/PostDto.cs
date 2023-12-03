@@ -9,7 +9,8 @@ namespace TournamentApp.Dto
         public DateTime CreatedAt { get; set; }
 
         //=========================================================================
-        public int AuthorId { get; set; }
+        //public int AuthorId { get; set; }
+        public UserNoDetailsDto Author {  get; set; }
         public List<CommentDto> Comments { get; set; } = new List<CommentDto>();
     }
 }

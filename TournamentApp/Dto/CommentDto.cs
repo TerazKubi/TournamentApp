@@ -10,8 +10,8 @@ namespace TournamentApp.Dto
 
         //=========================================================================
         
-        public int AuthorId { get; set; }
+        public UserNoDetailsDto Author { get; set; }
         
-        public int PostId { get; set; }
+        //public int PostId { get; set; }
     }
 }

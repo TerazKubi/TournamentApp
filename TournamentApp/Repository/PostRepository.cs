@@ -32,13 +32,19 @@ namespace TournamentApp.Repository
 
         public Post GetPostById(int id)
         {
-            return _context.Posts.Where(post => post.Id == id).FirstOrDefault();
+            return _context.Posts.Where(post => post.Id == id)
+                .Include(p => p.Author)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt)).ThenInclude(c => c.Author)
+                .FirstOrDefault();
         }
 
         public List<Post> GetPosts()
         {
             
-            return _context.Posts.Include(p => p.Comments).ToList();
+            return _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ToList();
         }
 
         public List<Post> GetPostsByUserId(int userId)
@@ -48,7 +54,11 @@ namespace TournamentApp.Repository
 
         public List<Post> GetTeamPosts(int teamId)
         {
-            return _context.Posts.Where(post => post.Author.TeamId == teamId).ToList();
+            return _context.Posts.Where(post => post.Author.TeamId == teamId)
+                .Include(p => p.Author)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author)
+                .ToList();
         }
 
         public bool PostExists(int postId)

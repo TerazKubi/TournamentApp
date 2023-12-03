@@ -31,10 +31,10 @@ namespace TournamentApp.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<GameDto>))]
+        [ProducesResponseType(200, Type = typeof(List<GameNoDetailsDto>))]
         public IActionResult GetGames()
         {
-            var games = _mapper.Map<List<GameDto>>(_gameRepository.GetGames());
+            var games = _mapper.Map<List<GameNoDetailsDto>>(_gameRepository.GetGames());
 
 
             if (!ModelState.IsValid)

@@ -15,4 +15,13 @@ namespace TournamentApp.Dto
         public int? PlayerId { get; set; }
         public int? OrganizerId { get; set; }
     }
+
+    public class UserNoDetailsDto
+    {
+        public int Id { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string Email { get; set; }
+        
+    }
 }

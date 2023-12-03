@@ -27,19 +27,51 @@ namespace TournamentApp.Dto
 
         //=========================================================================
         //public List<Team> Teams { get; set; } = new List<Team>();
-        public List<GameCommentDto> GameComments { get; set; } = new List<GameCommentDto>();
+        //public List<GameCommentDto> GameComments { get; set; } = new List<GameCommentDto>();
 
         public int TournamentId { get; set; }
 
-        
+
+        public TeamNoDetailsDto Team1 { get; set; }
         public int? Team1Id { get; set; }
-        
+        public TeamNoDetailsDto Team2 { get; set; }
         public int? Team2Id { get; set; }
 
 
         public int? WinnerId { get; set; }
 
-        public int? ParentId { get; set; }
-        public List<GameDto> Children { get; set; } = new List<GameDto>();
+        //public int? ParentId { get; set; }
+        //public List<GameDto> Children { get; set; } = new List<GameDto>();
+    }
+
+    public class GameNoDetailsDto
+    {
+        public int Id { get; set; }
+        //public string KeyCode { get; set; }
+        public string State { get; set; }
+        public DateTime StartDate { get; set; }
+
+        //public int Round { get; set; }
+
+        public int TournamentId { get; set; }
+
+
+        public TeamNoDetailsDto Team1 { get; set; }
+        public int? Team1Id { get; set; }
+        public TeamNoDetailsDto Team2 { get; set; }
+        public int? Team2Id { get; set; }
+
+        public int Team1Sets { get; set; }
+        public int Team2Sets { get; set; }
+
+        public int? WinnerId { get; set; }
+
+        //public int? ParentId { get; set; }
+        //public List<GameNoDetailsDto> Children { get; set; } = new List<GameNoDetailsDto>();
+    }
+
+    public class GameNode
+    {
+
     }
 }

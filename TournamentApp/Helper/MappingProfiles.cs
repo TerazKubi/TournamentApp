@@ -10,6 +10,7 @@ namespace TournamentApp.Helper
         public MappingProfiles()
         {
             CreateMap<User, UserDto>();
+            CreateMap<User, UserNoDetailsDto>();
             CreateMap<UserDto, User>();
             CreateMap<UserCreate, User>();
 
@@ -22,18 +23,22 @@ namespace TournamentApp.Helper
             CreateMap<CommentCreate, Comment>();
 
             CreateMap<Game, GameDto>();
+            CreateMap<Game, GameNoDetailsDto>();
             CreateMap<GameDto, Game>();
             CreateMap<GameCreate, Game>();
 
             CreateMap<Tournament, TournamentDto>();
+            CreateMap<Tournament, TournamentNoDetailsDto>();
             CreateMap<TournamentDto, Tournament>();
             CreateMap<TournamentCreate, Tournament>();
 
             CreateMap<Player, PlayerDto>();
+            CreateMap<Player, PlayerNoDetailsDto>();
             CreateMap<PlayerDto, Player>();
             CreateMap<PlayerCreate, Player>();
 
             CreateMap<Team, TeamDto>();
+            CreateMap<Team, TeamNoDetailsDto>();
             CreateMap<TeamDto, Team>();
             CreateMap<TeamCreate, Team>();
 

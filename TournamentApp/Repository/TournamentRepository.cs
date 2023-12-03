@@ -33,7 +33,7 @@ namespace TournamentApp.Repository
 
         public List<Tournament> GetTournaments()
         {
-            return _context.Tournaments.Include(t => t.Games).ToList();
+            return _context.Tournaments.Include(t => t.Organizer).OrderByDescending(t => t.StartDate).ToList();
         }
 
         public bool TournamentExists(int id)

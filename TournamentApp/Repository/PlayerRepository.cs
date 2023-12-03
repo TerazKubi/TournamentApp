@@ -26,12 +26,12 @@ namespace TournamentApp.Repository
 
         public Player GetById(int id)
         {
-            return _context.Players.Where(p => p.Id == id).FirstOrDefault();
+            return _context.Players.Where(p => p.Id == id).Include(p => p.User).Include(p => p.Team).FirstOrDefault();
         }
 
         public List<Player> GetPlayers()
         {
-            return _context.Players.Include(p => p.User).ToList();
+            return _context.Players.Include(p => p.User).Include(p => p.Team).ToList();
         }
 
         public bool PlayerExists(int playerId)
