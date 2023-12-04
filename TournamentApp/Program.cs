@@ -45,7 +45,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<DataContext>(options =>
 {
     //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    //test
 
 
     var server = builder.Configuration["DatabaseServer"] ?? "localhost";
