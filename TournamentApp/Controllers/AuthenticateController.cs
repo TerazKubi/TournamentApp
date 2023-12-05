@@ -103,6 +103,7 @@ namespace TournamentApp.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         [Route("RegisterAdmin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
