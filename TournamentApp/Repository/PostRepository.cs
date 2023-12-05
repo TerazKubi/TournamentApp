@@ -47,7 +47,7 @@ namespace TournamentApp.Repository
                 .ThenInclude(c => c.Author).ToList();
         }
 
-        public List<Post> GetPostsByUserId(int userId)
+        public List<Post> GetPostsByUserId(string userId)
         {
             return _context.Posts.Where(post => post.AuthorId == userId).ToList();
         }

@@ -40,7 +40,7 @@ namespace TournamentApp.Repository
             return Save();
         }
 
-        public User GetUser(int id)
+        public User GetUser(string id)
         {
             return _context.Users.Where(user => user.Id == id).FirstOrDefault();
         }
@@ -59,7 +59,7 @@ namespace TournamentApp.Repository
 
         
 
-        public bool UserExists(int userId)
+        public bool UserExists(string userId)
         {
             return _context.Users.Any(user => user.Id == userId);
         }

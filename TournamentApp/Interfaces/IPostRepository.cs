@@ -5,7 +5,7 @@ namespace TournamentApp.Interfaces
     public interface IPostRepository
     {
         List<Post> GetPosts();
-        List<Post> GetPostsByUserId(int userId);
+        List<Post> GetPostsByUserId(string userId);
         List<Post> GetTeamPosts(int teamId);
         List<Post> GetPlayerPosts(int playerId);
         Post GetPostById(int id);

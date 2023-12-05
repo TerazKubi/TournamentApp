@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -8,6 +9,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
+    [Authorize]
     [Route("api/GameComments")]
     [ApiController]
     public class GameCommentController: Controller
@@ -30,7 +32,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         public IActionResult CreateGameComment([FromBody] GameCommentCreate gameCommentCreate)
         {
-            if (gameCommentCreate == null || gameCommentCreate.AuthorId == 0 || gameCommentCreate.GameId == 0)
+            if (gameCommentCreate == null || gameCommentCreate.GameId == 0)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)

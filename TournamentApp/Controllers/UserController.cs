@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using TournamentApp.Dto;
@@ -9,6 +10,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
+    [Authorize]
     [Route("api/Users")]
     [ApiController]
     public class UserController : Controller
@@ -37,41 +39,41 @@ namespace TournamentApp.Controllers
         }
 
 
-        [HttpPost]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        public IActionResult CreateUser([FromBody] UserCreateWrapper userCreate)
-        {
-            if (userCreate == null)
-                return BadRequest(ModelState);
+        //[HttpPost]
+        //[ProducesResponseType(204)]
+        //[ProducesResponseType(400)]
+        //public IActionResult CreateUser([FromBody] UserCreateWrapper userCreate)
+        //{
+        //    if (userCreate == null)
+        //        return BadRequest(ModelState);
 
-            //check if already exists
-            if(_userRepository.ValidateUser(userCreate.UserCreate.Email))
-                return BadRequest(ModelState);
+        //    //check if already exists
+        //    if(_userRepository.ValidateUser(userCreate.UserCreate.Email))
+        //        return BadRequest(ModelState);
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
 
-            var userMap = _mapper.Map<User>(userCreate.UserCreate);
+        //    var userMap = _mapper.Map<User>(userCreate.UserCreate);
 
-            //testing creating with DTO
-            userMap.PasswordHash = HashPassword(userCreate.Password);
-
-
-            if (!_userRepository.CreateUser(userMap))
-            {
-                ModelState.AddModelError("", "Something went wrong while savin");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Successfully created");
-        }
+        //    //testing creating with DTO
+        //    userMap.PasswordHash = HashPassword(userCreate.Password);
 
 
+        //    if (!_userRepository.CreateUser(userMap))
+        //    {
+        //        ModelState.AddModelError("", "Something went wrong while savin");
+        //        return StatusCode(500, ModelState);
+        //    }
+
+        //    return Ok("Successfully created");
+        //}
+
+        
         [HttpGet("{userId}")]
-        [ProducesResponseType(200, Type = typeof(User))]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(400)]
-        public IActionResult GetUser(int userId)
+        public IActionResult GetUser(string userId)
         {
             if (!_userRepository.UserExists(userId))
                 return NotFound();
@@ -89,7 +91,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(200, Type = typeof(List<PostDto>))]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult GetUserPosts(int userId)
+        public IActionResult GetUserPosts(string userId)
         {
             if (!_userRepository.UserExists(userId))
                 return NotFound();
@@ -103,20 +105,20 @@ namespace TournamentApp.Controllers
             return Ok(posts);
         }
 
-        private string HashPassword(string password)
-        {
-            using SHA256 sha256 = SHA256.Create();
-            // Convert the password string to bytes
-            byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+        //private string HashPassword(string password)
+        //{
+        //    using SHA256 sha256 = SHA256.Create();
+        //    // Convert the password string to bytes
+        //    byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
 
-            // Compute the hash value of the password bytes
-            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
+        //    // Compute the hash value of the password bytes
+        //    byte[] hashBytes = sha256.ComputeHash(passwordBytes);
 
-            // Convert the hashed bytes to a base64-encoded string
-            string hashedPassword = Convert.ToBase64String(hashBytes);
+        //    // Convert the hashed bytes to a base64-encoded string
+        //    string hashedPassword = Convert.ToBase64String(hashBytes);
 
-            return hashedPassword;
-        }
+        //    return hashedPassword;
+        //}
 
 
     }

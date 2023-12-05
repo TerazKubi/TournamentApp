@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TournamentApp.Dto;
@@ -10,6 +11,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
+    [Authorize]
     [Route("api/Games")]
     [ApiController]
     public class GameController : Controller

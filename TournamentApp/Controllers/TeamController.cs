@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -9,6 +10,7 @@ using TournamentApp.Repository;
 namespace TournamentApp.Controllers
 
 {
+    [Authorize]
     [Route("api/Teams")]
     [ApiController]
     public class TeamController : Controller
@@ -96,7 +98,7 @@ namespace TournamentApp.Controllers
         public IActionResult CreateTeam([FromBody] TeamCreate teamCreate)
         {
             
-            if (teamCreate == null || teamCreate.UserId == 0)
+            if (teamCreate == null)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)

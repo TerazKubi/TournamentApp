@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using TournamentApp.Dto;
@@ -9,6 +10,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
+    [Authorize]
     [Route("api/Posts")]
     [ApiController]
     public class PostController : Controller

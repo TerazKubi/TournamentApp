@@ -12,7 +12,7 @@ namespace TournamentApp.Dto
         
         public TeamNoDetailsDto Team { get; set; }
         public int TeamId { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public UserNoDetailsDto User { get; set; }
 
     }
@@ -24,7 +24,7 @@ namespace TournamentApp.Dto
         public string Position { get; set; }
         public TeamNoDetailsDto Team { get; set; }
         public int TeamId { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public UserNoDetailsDto User { get; set; }
     }
 }

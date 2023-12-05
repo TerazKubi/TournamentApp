@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TournamentApp.Models;
 
 namespace TournamentApp.Data
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<User>
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
+        public DataContext(DbContextOptions <DataContext> options) : base(options)
         {
 
         }
@@ -34,8 +35,8 @@ namespace TournamentApp.Data
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
-                entity.Property(u => u.PasswordHash).IsRequired();
-                entity.Property(u => u.Email).IsRequired();
+                //entity.Property(u => u.PasswordHash).IsRequired();
+                //entity.Property(u => u.Email).IsRequired();
                 entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETDATE()");
 
                 // user 1-1 team

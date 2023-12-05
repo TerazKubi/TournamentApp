@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -8,6 +9,7 @@ using TournamentApp.Repository;
 
 namespace TournamentApp.Controllers
 {
+    [Authorize]
     [Route("api/Players")]
     [ApiController]
     public class PlayerController : Controller
@@ -63,7 +65,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         public IActionResult CreatePlayer([FromBody] PlayerCreate playerCreate)
         {
-            if (playerCreate == null || playerCreate.UserId == 0 || playerCreate.TeamId == 0)
+            if (playerCreate == null || playerCreate.TeamId == 0)
             {
                 ModelState.AddModelError("errorMessage", "No data or no userId or teamId");
                 return BadRequest(ModelState);
