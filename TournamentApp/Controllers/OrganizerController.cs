@@ -72,6 +72,7 @@ namespace TournamentApp.Controllers
             return Ok(tournaments);
         }
 
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]

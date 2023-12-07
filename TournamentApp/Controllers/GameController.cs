@@ -124,6 +124,7 @@ namespace TournamentApp.Controllers
             return Ok("Successfully created");
         }
 
+        [Authorize(Roles = UserRoles.Referee)]
         [HttpPut("{gameId}/Addpoint/{teamId}")]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
@@ -243,9 +244,9 @@ namespace TournamentApp.Controllers
             return NoContent();
         }
 
-        
 
 
+        [Authorize(Roles = UserRoles.Organizer)]
         [HttpPut("{gameId}")]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]

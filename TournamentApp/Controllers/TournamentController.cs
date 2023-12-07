@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,15 +23,17 @@ namespace TournamentApp.Controllers
         private readonly IOrganizerRepository _organizerRepository;
         private readonly IGameRepository _gameRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
         public TournamentController(IMapper mapper, ITournamentRepository tournamentRepository,
-            ITeamRepository teamRepository, IOrganizerRepository organizerRepository, IGameRepository gameRepository)
+            ITeamRepository teamRepository, IOrganizerRepository organizerRepository, IGameRepository gameRepository, UserManager<User> userManager)
         {
             _mapper = mapper;
             _tournamentRepository = tournamentRepository;
             _teamRepository = teamRepository;
             _organizerRepository = organizerRepository;
             _gameRepository = gameRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -79,6 +82,7 @@ namespace TournamentApp.Controllers
             return Ok(rootGame);
         }
 
+        [Authorize(Roles = UserRoles.Organizer)]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -180,6 +184,7 @@ namespace TournamentApp.Controllers
             return Ok("Successfully created");
         }
 
+        [Authorize(Roles = UserRoles.Organizer)]
         [HttpDelete("{tournamentId}")]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
@@ -190,11 +195,16 @@ namespace TournamentApp.Controllers
             {
                 return NotFound();
             }
+            
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var tournamentToDelete = _tournamentRepository.GetTournament(tournamentId);
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != tournamentToDelete.Organizer.UserId || !isAdmin) return Forbid();
 
             if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
             {

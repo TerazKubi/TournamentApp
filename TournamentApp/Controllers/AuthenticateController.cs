@@ -40,6 +40,7 @@ namespace TournamentApp.Controllers
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
@@ -98,6 +99,26 @@ namespace TournamentApp.Controllers
             if (await _roleManager.RoleExistsAsync(UserRoles.Organizer))
             {
                 await _userManager.AddToRoleAsync(user, UserRoles.Organizer);
+            }
+
+            return Ok();
+        }
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost]
+        [Route("AddRefereeRole/{userId}")]
+        public async Task<IActionResult> AddRefereeRole(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User doesn't exists!" });
+
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Referee))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Referee));
+
+            if (await _roleManager.RoleExistsAsync(UserRoles.Referee))
+            {
+                await _userManager.AddToRoleAsync(user, UserRoles.Referee);
             }
 
             return Ok();

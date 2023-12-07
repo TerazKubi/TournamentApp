@@ -11,9 +11,7 @@ namespace TournamentApp.Models
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public DateTime CreatedAt { get; set; }
-        //public string Email { get; set; }
-        //public string PasswordHash { get; set; }
-        //public DateTime LastLogin {  get; set; }A
+        public string ImageURL { get; set; }
 
         //=========================================================================
         public Team Team { get; set; }

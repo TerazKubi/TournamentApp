@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -19,15 +20,17 @@ namespace TournamentApp.Controllers
         private readonly ITeamRepository _teamRepository;
         private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
         public PlayerController(IPlayerRepository playerRepository, IMapper mapper,
-            IUserRepository userRepository, ITeamRepository teamRepository, IPostRepository postRepository)
+            IUserRepository userRepository, ITeamRepository teamRepository, IPostRepository postRepository, UserManager<User> userManager)
         {
             _playerRepository = playerRepository;
             _userRepository = userRepository;
             _mapper = mapper;
             _teamRepository = teamRepository;
             _postRepository = postRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -60,6 +63,7 @@ namespace TournamentApp.Controllers
             return Ok(player);
         }
 
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -134,6 +138,11 @@ namespace TournamentApp.Controllers
                 return BadRequest();
 
             var playerMap = _mapper.Map<Player>(updatePlayer);
+
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != playerMap.UserId || !isAdmin) return Forbid();
 
             if (!_playerRepository.UpdatePlayer(playerMap))
             {

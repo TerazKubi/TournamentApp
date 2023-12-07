@@ -92,6 +92,7 @@ namespace TournamentApp.Controllers
             return Ok(posts);
         }
 
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -109,7 +110,7 @@ namespace TournamentApp.Controllers
 
             // check if team already exists TODO
 
-            // check if given user is player if yes return bad request
+            
             
 
 

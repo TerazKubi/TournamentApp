@@ -30,6 +30,8 @@ namespace TournamentApp
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
             if (!await _roleManager.RoleExistsAsync(UserRoles.Organizer))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Organizer));
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Referee))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Referee));
 
             // create test user
             await _userManager.CreateAsync(new User()
@@ -53,6 +55,18 @@ namespace TournamentApp
             };
             await _userManager.CreateAsync(admin, "AdminPassword123!"); // <-- admin password
             await _userManager.AddToRolesAsync(admin, new List<string>(){ UserRoles.Admin, UserRoles.Organizer, UserRoles.User });
+
+            //create ref
+            var referee = new User()
+            {
+                Email = "referee@gmail.com",
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = "RefUser1",
+                FirstName = "ref",
+                LastName = "referee"
+            };
+            await _userManager.CreateAsync(referee, "RefPassword123!"); // <-- ref password
+            await _userManager.AddToRolesAsync(referee, new List<string>() { UserRoles.Referee, UserRoles.User });
 
 
             // create 2 organizers

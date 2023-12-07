@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -18,13 +19,15 @@ namespace TournamentApp.Controllers
         private readonly IGameRepository _gameRepository;
         private readonly IGameCommentRepository _gameCommentRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
-        public GameCommentController(IUserRepository userRepository, IGameCommentRepository gameCommentRepository, IMapper mapper, IGameRepository gameRepository)
+        public GameCommentController(IUserRepository userRepository, IGameCommentRepository gameCommentRepository, IMapper mapper, IGameRepository gameRepository, UserManager<User> userManager)
         {
             _userRepository = userRepository;
             _gameCommentRepository = gameCommentRepository;
             _mapper = mapper;
             _gameRepository = gameRepository;
+            _userManager = userManager;
         }
 
         [HttpPost]
@@ -67,10 +70,15 @@ namespace TournamentApp.Controllers
                 return NotFound();
             }
 
-            var gameCommentToDelte = _gameCommentRepository.GetGameCommentById(gameCommentId);
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var gameCommentToDelte = _gameCommentRepository.GetGameCommentById(gameCommentId);
+
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != gameCommentToDelte.AuthorId || !isAdmin) return Forbid();
 
             if (!_gameCommentRepository.DeleteGameComment(gameCommentToDelte))
             {

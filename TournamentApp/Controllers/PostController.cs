@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using TournamentApp.Dto;
@@ -19,15 +20,18 @@ namespace TournamentApp.Controllers
         private readonly ICommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
         public PostController(IPostRepository postRepository,
             IUserRepository userRepository,
             IMapper mapper,
-            ICommentRepository commentRepository)
+            ICommentRepository commentRepository,
+            UserManager<User> userManager)
         {
             _postRepository = postRepository;
             _userRepository = userRepository;
             _mapper = mapper;
             _commentRepository = commentRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -127,6 +131,11 @@ namespace TournamentApp.Controllers
 
             var postMap = _mapper.Map<Post>(updatePost);
 
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != postMap.AuthorId || !isAdmin) return Forbid();
+
             if (!_postRepository.UpdatePost(postMap))
             {
                 ModelState.AddModelError("", "Something went wrong updating post");
@@ -140,7 +149,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult DeletePost(int postId)
+        public IActionResult DeletePostAsync(int postId)
         {
             if (!_postRepository.PostExists(postId))
             {
@@ -152,12 +161,22 @@ namespace TournamentApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+            Console.WriteLine("\n CUrent user id: " + currentUserId + " IS ADMIN: "+isAdmin+"\n");
+
+            if (currentUserId != postToDelete.AuthorId || !isAdmin) return Forbid();
+            
             if (!_postRepository.DeletePost(postToDelete))
             {
-                ModelState.AddModelError("", "Something went wrong deleting post");
+                ModelState.AddModelError("error", "something went wrong deleting post");
+                return StatusCode(500, ModelState);
             }
 
             return NoContent();
+            
+
+          
         }
     }
 }

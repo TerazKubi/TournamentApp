@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -18,17 +19,20 @@ namespace TournamentApp.Controllers
         private readonly IPostRepository _postRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        
-            
+        private readonly UserManager<User> _userManager;
+
+
         public CommentController(ICommentRepository commentRepository,
             IPostRepository postRepository,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            UserManager<User> userManager)
         {
             _commentRepository = commentRepository;
             _postRepository = postRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -110,6 +114,11 @@ namespace TournamentApp.Controllers
 
             var commentMap = _mapper.Map<Comment>(updateComment);
 
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != commentMap.AuthorId || !isAdmin) return Forbid();
+
             if (!_commentRepository.UpdateComment(commentMap))
             {
                 ModelState.AddModelError("", "Something went wrong updating category");
@@ -129,11 +138,16 @@ namespace TournamentApp.Controllers
             {
                 return NotFound();
             }
+            
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var commentToDelte = _commentRepository.GetCommentById(commentId);
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (currentUserId != commentToDelte.AuthorId || !isAdmin) return Forbid();
 
             if (!_commentRepository.DeleteComment(commentToDelte))
             {
