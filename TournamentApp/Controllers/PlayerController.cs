@@ -142,7 +142,9 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != playerMap.UserId || !isAdmin) return Forbid();
+            
+
+            if (!(playerMap.UserId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_playerRepository.UpdatePlayer(playerMap))
             {

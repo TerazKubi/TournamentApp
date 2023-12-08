@@ -204,7 +204,7 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != tournamentToDelete.Organizer.UserId || !isAdmin) return Forbid();
+            if (!(tournamentToDelete.Organizer.UserId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
             {

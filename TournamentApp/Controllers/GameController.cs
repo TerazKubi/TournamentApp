@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TournamentApp.Dto;
@@ -21,15 +22,17 @@ namespace TournamentApp.Controllers
         private readonly ITeamRepository _teamRepository;
         private readonly IGameCommentRepository _gameCommentRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
         public GameController(IMapper mapper, IGameRepository gameRepository,
-            ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IGameCommentRepository gameCommentRepository)
+            ITournamentRepository tournamentRepository, ITeamRepository teamRepository, IGameCommentRepository gameCommentRepository, UserManager<User> userManager)
         {
             _mapper = mapper;
             _gameRepository = gameRepository;
             _tournamentRepository = tournamentRepository;
             _teamRepository = teamRepository;
             _gameCommentRepository = gameCommentRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -268,8 +271,11 @@ namespace TournamentApp.Controllers
             var gameToUpdate = _gameRepository.GetGame(gameId);
          
             gameToUpdate.StartDate = updateGame.StartDate;
-            
-            
+
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (!(gameToUpdate.Tournament.Organizer.UserId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             //var gameMap = _mapper.Map<Game>(updateGame);
 

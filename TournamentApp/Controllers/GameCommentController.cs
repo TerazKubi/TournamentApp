@@ -61,7 +61,7 @@ namespace TournamentApp.Controllers
 
         [HttpDelete("{commentId}")]
         [ProducesResponseType(400)]
-        [ProducesResponseType(204)]
+        [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult DeleteGameComment(int gameCommentId)
         {
@@ -78,14 +78,14 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != gameCommentToDelte.AuthorId || !isAdmin) return Forbid();
+            if (!(gameCommentToDelte.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_gameCommentRepository.DeleteGameComment(gameCommentToDelte))
             {
                 ModelState.AddModelError("", "Something went wrong deleting game comment");
             }
 
-            return NoContent();
+            return Ok();
         }
     }
 }

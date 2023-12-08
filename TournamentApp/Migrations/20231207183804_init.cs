@@ -33,6 +33,7 @@ namespace TournamentApp.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    ImageURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TeamId = table.Column<int>(type: "int", nullable: true),
                     PlayerId = table.Column<int>(type: "int", nullable: true),
                     OrganizerId = table.Column<int>(type: "int", nullable: true),

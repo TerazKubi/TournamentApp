@@ -12,7 +12,7 @@ using TournamentApp.Data;
 namespace TournamentApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231204223552_init")]
+    [Migration("20231207183804_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -538,6 +538,9 @@ namespace TournamentApp.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageURL")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")

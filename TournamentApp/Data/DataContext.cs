@@ -37,6 +37,7 @@ namespace TournamentApp.Data
                 entity.HasKey(u => u.Id);
                 //entity.Property(u => u.PasswordHash).IsRequired();
                 //entity.Property(u => u.Email).IsRequired();
+                entity.Property(u => u.ImageURL).HasDefaultValue("Upload/UserImages/default.png");
                 entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETDATE()");
 
                 // user 1-1 team

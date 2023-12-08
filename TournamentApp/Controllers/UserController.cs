@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using TournamentApp.Dto;
@@ -18,12 +19,15 @@ namespace TournamentApp.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
-        public UserController(IUserRepository userRepository, IMapper mapper, IPostRepository postRepository)
+        private readonly IWebHostEnvironment _environment;
+        private readonly UserManager<User> _userManager;
+        public UserController(IUserRepository userRepository, IMapper mapper, IPostRepository postRepository, IWebHostEnvironment environment, UserManager<User> userManager)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _postRepository = postRepository;
-            
+            _environment = environment;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -105,20 +109,144 @@ namespace TournamentApp.Controllers
             return Ok(posts);
         }
 
-        //private string HashPassword(string password)
-        //{
-        //    using SHA256 sha256 = SHA256.Create();
-        //    // Convert the password string to bytes
-        //    byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+        [HttpPost("{userId}/ProfilePicture")]
+        public async Task<IActionResult> UploadImage(IFormFile imageFile, string userId)
+        {
+            if(!_userRepository.UserExists(userId)) return BadRequest();
 
-        //    // Compute the hash value of the password bytes
-        //    byte[] hashBytes = sha256.ComputeHash(passwordBytes);
 
-        //    // Convert the hashed bytes to a base64-encoded string
-        //    string hashedPassword = Convert.ToBase64String(hashBytes);
+            
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+            
+            if (!(userId.Equals(currentUserId) || isAdmin)) return Forbid();
 
-        //    return hashedPassword;
-        //}
+
+            try
+            {
+                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+                if (!System.IO.Directory.Exists(FilePath))
+                {
+                    System.IO.Directory.CreateDirectory(FilePath);
+                }
+
+                string ImagePath = FilePath + userId + ".png";
+                if (!System.IO.File.Exists(ImagePath))
+                {
+                    System.IO.File.Delete(ImagePath);
+                }
+                using(FileStream stream=System.IO.File.Create(ImagePath))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                var user = _userRepository.GetUser(userId);
+
+                user.ImageURL = "/Upload/UserImages/" + user.Id + ".png";
+
+                if(!_userRepository.UpdateUser(user))
+                {
+                    ModelState.AddModelError("error", "problem with updating user");
+                    return BadRequest(ModelState);
+                }
+
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+
+            return Ok();
+        }
+
+        [HttpGet("{userId}/ProfilePicture")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetImage(string userId)
+        {
+            if (!_userRepository.UserExists(userId)) return BadRequest();
+
+            string ImageUrl = String.Empty;
+            string HostUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+
+            try
+            {
+                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+
+                string ImagePath = FilePath + userId + ".png";
+                Console.WriteLine("\n\n ImagePath: " + ImagePath + "\n\n");
+
+
+                if (System.IO.File.Exists(ImagePath))
+                {
+                    ImageUrl = HostUrl + "/Upload/UserImages/" + userId + ".png";
+                    
+                } else
+                {
+                    ImageUrl = HostUrl + "/Upload/UserImages/default.png";
+                }
+                
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+
+            return Ok(ImageUrl);
+        }
+
+        [HttpDelete("{userId}/ProfilePicture")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> RemoveImage(string userId)
+        {
+            if (!_userRepository.UserExists(userId)) return BadRequest();
+
+            
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (!(userId.Equals(currentUserId) || isAdmin)) return Forbid();
+
+
+            try
+            {
+                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+
+                string ImagePath = FilePath + userId + ".png";
+                
+
+
+                if (System.IO.File.Exists(ImagePath))
+                {
+                    System.IO.File.Delete(ImagePath);
+                    
+                }
+                else
+                {
+                    return NotFound();
+                }
+
+                var user = _userRepository.GetUser(userId);
+                user.ImageURL = "/Upload/UserImages/default.png";
+
+                if (!_userRepository.UpdateUser(user))
+                {
+                    ModelState.AddModelError("error", "problem with updating user");
+                    return BadRequest(ModelState);
+                }
+
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
+        }
+
 
 
     }

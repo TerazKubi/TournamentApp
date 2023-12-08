@@ -134,7 +134,7 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != postMap.AuthorId || !isAdmin) return Forbid();
+            if (!(postMap.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_postRepository.UpdatePost(postMap))
             {
@@ -163,10 +163,9 @@ namespace TournamentApp.Controllers
 
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
-            Console.WriteLine("\n CUrent user id: " + currentUserId + " IS ADMIN: "+isAdmin+"\n");
 
-            if (currentUserId != postToDelete.AuthorId || !isAdmin) return Forbid();
-            
+            if (!(postToDelete.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
+
             if (!_postRepository.DeletePost(postToDelete))
             {
                 ModelState.AddModelError("error", "something went wrong deleting post");

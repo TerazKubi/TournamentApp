@@ -117,7 +117,7 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != commentMap.AuthorId || !isAdmin) return Forbid();
+            if (!(commentMap.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_commentRepository.UpdateComment(commentMap))
             {
@@ -147,7 +147,7 @@ namespace TournamentApp.Controllers
             var currentUserId = _userManager.GetUserId(User);
             bool isAdmin = User.IsInRole(UserRoles.Admin);
 
-            if (currentUserId != commentToDelte.AuthorId || !isAdmin) return Forbid();
+            if (!(commentToDelte.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
 
             if (!_commentRepository.DeleteComment(commentToDelte))
             {
