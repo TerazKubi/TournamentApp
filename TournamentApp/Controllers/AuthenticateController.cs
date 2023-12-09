@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TournamentApp.Input;
 using TournamentApp.Models;
 
 namespace TournamentApp.Controllers
@@ -83,6 +84,70 @@ namespace TournamentApp.Controllers
 
             return Ok(new Response { Status = "Success", Message = "User created successfully!" });
         }
+
+        [Authorize]
+        [HttpPost]
+        [Route("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePassword model)
+        {
+            // Retrieve the user based on the username or email (customize as needed)
+            var user = await _userManager.FindByNameAsync(model.Username);
+
+            // Check if the user exists
+            if (user == null) 
+                return NotFound("User not found");
+            
+
+            // Check if the old password is correct
+            if (!await _userManager.CheckPasswordAsync(user, model.OldPassword))
+                return BadRequest("Old password is incorrect");
+            
+            // Change the password
+            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
+            if (result.Succeeded)
+                return Ok("Password changed successfully");            
+            else
+                return BadRequest(result.Errors);
+
+        }
+
+
+        //[HttpPost]
+        //[Route("ResetPassword")]
+        //public async Task<IActionResult> ResetPassword([FromBody] ResetPassword model)
+        //{
+        //    var user = await _userManager.FindByNameAsync(model.Username);
+        //    if (user == null)
+        //    {
+        //        // User not found
+        //        return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Error", Message = "User not found!" });
+        //    }
+
+        //    // Validate the token
+        //    var isTokenValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "ResetPassword", model.Token);
+        //    if (!isTokenValid)
+        //    {
+        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Invalid reset token!" });
+        //    }
+
+        //    // Check if the reset token has not expired
+        //    var tokenExpiration = await _userManager.GetTokenAsync(user, TokenOptions.DefaultProvider, "ResetPassword");
+        //    var t = _userManager.
+        //    if (string.IsNullOrEmpty(tokenExpiration) || DateTimeOffset.Parse(tokenExpiration) <= DateTimeOffset.UtcNow)
+        //    {
+        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Reset token has expired!" });
+        //    }
+
+        //    // Reset the user's password
+        //    var resetPasswordResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+        //    if (!resetPasswordResult.Succeeded)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Password reset failed! Please try again." });
+        //    }
+
+        //    return Ok(new Response { Status = "Success", Message = "Password reset successfully!" });
+        //}
 
         [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
