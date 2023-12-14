@@ -1,4 +1,6 @@
-﻿namespace TournamentApp.Input
+﻿using TournamentApp.Models;
+
+namespace TournamentApp.Input
 {
     public class TournamentCreate
     {
@@ -7,7 +9,7 @@
         public DateTime? EndDate { get; set; }
         public string City { get; set; }
         public int TeamCount { get; set; }
-        public string EliminationAlgorithm { get; set; }
+        public EliminationTypes EliminationAlgorithm { get; set; }
         public int OrganizerId { get; set; }
     }
 }

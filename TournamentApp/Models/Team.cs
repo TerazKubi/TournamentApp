@@ -19,5 +19,8 @@
 
         public User User { get; set; }
         public string UserId { get; set; }
+
+
+        public List<SwissElimination> SwissElimination { get; set; } = new List<SwissElimination>();
     }
 }

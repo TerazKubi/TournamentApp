@@ -22,11 +22,12 @@ namespace TournamentApp.Controllers
         private readonly ITeamRepository _teamRepository;
         private readonly IOrganizerRepository _organizerRepository;
         private readonly IGameRepository _gameRepository;
+        private readonly ISwissEliminationRepository _swissRepository;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
 
         public TournamentController(IMapper mapper, ITournamentRepository tournamentRepository,
-            ITeamRepository teamRepository, IOrganizerRepository organizerRepository, IGameRepository gameRepository, UserManager<User> userManager)
+            ITeamRepository teamRepository, IOrganizerRepository organizerRepository, IGameRepository gameRepository, UserManager<User> userManager, ISwissEliminationRepository swissRepository)
         {
             _mapper = mapper;
             _tournamentRepository = tournamentRepository;
@@ -34,6 +35,7 @@ namespace TournamentApp.Controllers
             _organizerRepository = organizerRepository;
             _gameRepository = gameRepository;
             _userManager = userManager;
+            _swissRepository = swissRepository;
         }
 
         [HttpGet]
@@ -83,12 +85,44 @@ namespace TournamentApp.Controllers
         }
 
         [Authorize(Roles = UserRoles.Organizer)]
+        [HttpDelete("{tournamentId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteTournament(int tournamentId)
+        {
+            if (!_tournamentRepository.TournamentExists(tournamentId))
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var tournamentToDelete = _tournamentRepository.GetTournament(tournamentId);
+
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (!(tournamentToDelete.Organizer.UserId.Equals(currentUserId) || isAdmin)) return Forbid();
+
+            if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
+            {
+                ModelState.AddModelError("", "Something went wrong deleting tournament");
+            }
+
+            return NoContent();
+        }
+
+
+
+
+        [Authorize(Roles = UserRoles.Organizer)]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult CreateTournament([FromBody] TournamentCreateWrapper tournamentCreate)
         {
-
             if (tournamentCreate.Tournament == null || tournamentCreate.teamsIdList == null)
             {
                 ModelState.AddModelError("errorMessage", "tournament or teamIdlist is null");
@@ -114,7 +148,12 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
             }
 
-            //check if all teams exists
+            if(tournamentCreate.Tournament.EliminationAlgorithm == EliminationTypes.SwissElimination && tournamentCreate.SwissRounds == null)
+            {
+                ModelState.AddModelError("errorMessage", "No rounds given for swiss elimination");
+                return BadRequest(ModelState);
+            }
+
             if (!_teamRepository.AllTeamsExists(tournamentCreate.teamsIdList))
             {
                 ModelState.AddModelError("errorMessage", "One of the team from teamIdList doesnt exist");
@@ -127,15 +166,10 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
             }
 
-            
-
-            
 
 
             var tournamentMap = _mapper.Map<Tournament>(tournamentCreate.Tournament);
             tournamentMap.Teams = _teamRepository.GetTeamsFromList(tournamentCreate.teamsIdList);
-
-            
 
             if (!_tournamentRepository.CreateTournament(tournamentMap))
             {
@@ -144,18 +178,94 @@ namespace TournamentApp.Controllers
             }
 
             
+            if(tournamentMap.EliminationAlgorithm == EliminationTypes.SingleElimination)
+            {
+                if(!InitSingleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
+                {
+                    ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket.");
+                    return BadRequest(ModelState);
+                }
+            } 
+            else if (tournamentMap.EliminationAlgorithm == EliminationTypes.DoubleElimination)
+            {
 
-            
+            }
+            else if (tournamentMap.EliminationAlgorithm == EliminationTypes.SwissElimination)
+            {
+                if(!InitSwissEliminationTournament(tournamentMap, (int)tournamentCreate.SwissRounds))
+                {
+                    ModelState.AddModelError("errorMessage", "Error while initializing swiss elimination tournamnet.");
+                    return BadRequest(ModelState);
+                }
+            }
 
-            var depth = (int)Math.Ceiling(Math.Log2(tournamentMap.Teams.ToList().Count));
 
-            var rootGame = BuildTreeRecursive(depth, tournamentMap.Id);
+            //var depth = (int)Math.Ceiling(Math.Log2(tournamentMap.Teams.ToList().Count));
 
-            AssignTeamsForLeafNodes(rootGame, tournamentCreate.teamsIdList);
+            //var rootGame = BuildTreeRecursive(depth, tournamentMap.Id);
+
+            //AssignTeamsForLeafNodes(rootGame, tournamentCreate.teamsIdList);
+
+            ////PrintTree(rootGame, 0);
+
+
+            //if (rootGame != null)
+            //{
+            //    Console.WriteLine("Controller: Saving game...");
+            //    Console.WriteLine("Parent: " + rootGame.Parent);
+            //    _gameRepository.CreateGame(rootGame);
+            //}
+
+            ////check for early advance if team numbers were odd
+            //var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournamentMap.Id);
+            //if(gameWithOneTeam != null)
+            //{
+            //    var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
+            //    if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
+            //    {
+            //        var parentGame = _gameRepository.GetGame((int)gameWithOneTeam.ParentId);
+            //        parentGame.Team1Id = teamId;
+            //        if (!_gameRepository.UpdateGame(parentGame))
+            //        {
+            //            ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: "+parentGame.Id);
+            //            return BadRequest(ModelState);
+            //        }
+            //    }
+            //}
+
+
+            return Ok("Successfully created");
+        }
+
+        
+
+        private bool InitSwissEliminationTournament(Tournament tournament, int rounds)
+        {
+            //prepare swiss table
+            List<SwissElimination> swissTable = new List<SwissElimination>();
+            foreach (var team in tournament.Teams)
+            {
+                swissTable.Add(new SwissElimination
+                {
+                    TournamentId = tournament.Id,
+                    TeamId = team.Id,
+                });
+            }
+
+
+            return _swissRepository.CreateSwissTableFromList(swissTable);
+        }
+        private bool InitSingleEliminationTournament(Tournament tournament, List<int> teamsIdList)
+        {
+            var depth = (int)Math.Ceiling(Math.Log2(tournament.Teams.ToList().Count));
+
+            var rootGame = BuildTreeRecursive(depth, tournament.Id);
+
+            AssignTeamsForLeafNodes(rootGame, teamsIdList);
 
             //PrintTree(rootGame, 0);
 
-            
+
             if (rootGame != null)
             {
                 Console.WriteLine("Controller: Saving game...");
@@ -164,8 +274,8 @@ namespace TournamentApp.Controllers
             }
 
             //check for early advance if team numbers were odd
-            var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournamentMap.Id);
-            if(gameWithOneTeam != null)
+            var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournament.Id);
+            if (gameWithOneTeam != null)
             {
                 var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
                 if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
@@ -174,48 +284,15 @@ namespace TournamentApp.Controllers
                     parentGame.Team1Id = teamId;
                     if (!_gameRepository.UpdateGame(parentGame))
                     {
-                        ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: "+parentGame.Id);
-                        return BadRequest(ModelState);
+                        //ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: " + parentGame.Id);
+                        //return BadRequest(ModelState);
+                        return false;
                     }
                 }
             }
 
-
-            return Ok("Successfully created");
+            return true;
         }
-
-        [Authorize(Roles = UserRoles.Organizer)]
-        [HttpDelete("{tournamentId}")]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
-        public IActionResult DeleteTournament(int tournamentId)
-        {
-            if (!_tournamentRepository.TournamentExists(tournamentId))
-            {
-                return NotFound();
-            }
-            
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var tournamentToDelete = _tournamentRepository.GetTournament(tournamentId);
-
-            var currentUserId = _userManager.GetUserId(User);
-            bool isAdmin = User.IsInRole(UserRoles.Admin);
-
-            if (!(tournamentToDelete.Organizer.UserId.Equals(currentUserId) || isAdmin)) return Forbid();
-
-            if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
-            {
-                ModelState.AddModelError("", "Something went wrong deleting tournament");
-            }
-
-            return NoContent();
-        }
-
-
-
 
         private Game BuildTreeRecursive(int depth, int tournamentId, Game parentGame = null)
         {

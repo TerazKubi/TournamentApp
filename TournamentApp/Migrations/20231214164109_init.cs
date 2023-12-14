@@ -33,7 +33,7 @@ namespace TournamentApp.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
-                    ImageURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageURL = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "Upload/UserImages/default.png"),
                     TeamId = table.Column<int>(type: "int", nullable: true),
                     PlayerId = table.Column<int>(type: "int", nullable: true),
                     OrganizerId = table.Column<int>(type: "int", nullable: true),
@@ -235,7 +235,7 @@ namespace TournamentApp.Migrations
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TeamCount = table.Column<int>(type: "int", nullable: false),
-                    EliminationAlgorithm = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EliminationAlgorithm = table.Column<int>(type: "int", nullable: false),
                     State = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "awaited"),
                     OrganizerId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -359,6 +359,33 @@ namespace TournamentApp.Migrations
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Games_Tournaments_TournamentId",
+                        column: x => x.TournamentId,
+                        principalTable: "Tournaments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SwissEliminations",
+                columns: table => new
+                {
+                    TournamentId = table.Column<int>(type: "int", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: false),
+                    id = table.Column<int>(type: "int", nullable: false),
+                    Points = table.Column<int>(type: "int", nullable: false),
+                    HasPause = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SwissEliminations", x => new { x.TournamentId, x.TeamId });
+                    table.ForeignKey(
+                        name: "FK_SwissEliminations_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SwissEliminations_Tournaments_TournamentId",
                         column: x => x.TournamentId,
                         principalTable: "Tournaments",
                         principalColumn: "Id",
@@ -525,6 +552,11 @@ namespace TournamentApp.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SwissEliminations_TeamId",
+                table: "SwissEliminations",
+                column: "TeamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Teams_UserId",
                 table: "Teams",
                 column: "UserId",
@@ -568,6 +600,9 @@ namespace TournamentApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Players");
+
+            migrationBuilder.DropTable(
+                name: "SwissEliminations");
 
             migrationBuilder.DropTable(
                 name: "TeamTournament");

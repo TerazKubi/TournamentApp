@@ -20,6 +20,7 @@ namespace TournamentApp.Data
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<Organizer> Organizers { get; set; }
         public DbSet<GameComment> GameComments { get; set; }
+        public DbSet<SwissElimination> SwissEliminations { get; set; }
         //public DbSet<Score> Scores { get; set; }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -178,33 +179,21 @@ namespace TournamentApp.Data
 
                 // ======================================================
                 entity.HasOne(g => g.Winner).WithMany().HasForeignKey(g => g.WinnerId);
-
-                //entity.HasOne(g => g.Parent)
-                //    .WithOne().HasForeignKey<Game>(g => g.ParentId);
-
                 entity.HasMany(g => g.Children).WithOne(g => g.Parent).HasForeignKey(g => g.ParentId).OnDelete(DeleteBehavior.Restrict);
 
 
-                //entity.HasOne(g => g.LeftChild).WithOne().HasForeignKey<Game>(g => g.LeftChildId);
-                //entity.HasOne(g => g.RightChild).WithOne().HasForeignKey<Game>(g => g.RightChildId);
+                
+            });
 
+            modelBuilder.Entity<SwissElimination>(entity =>
+            {
+                entity.HasKey(e => new { e.TournamentId, e.TeamId });
 
-                //entity.HasOne(g => g.LeftChild).WithOne().HasForeignKey(g => g.Left)
+                entity.HasOne(s => s.Team).WithMany(t => t.SwissElimination).HasForeignKey(s => s.TeamId);
+                entity.HasOne(s => s.Tournament).WithMany(t => t.SwissElimination).HasForeignKey(s => s.TournamentId);
 
-            //    modelBuilder.Entity<BinaryTreeNode>()
-            //.HasOne(node => node.Parent)
-            //.WithMany()
-            //.HasForeignKey(node => node.ParentId);
-
-            //    modelBuilder.Entity<BinaryTreeNode>()
-            //        .HasOne(node => node.LeftChild)
-            //        .WithOne()
-            //        .HasForeignKey<BinaryTreeNode>(node => node.LeftChildId);
-
-            //    modelBuilder.Entity<BinaryTreeNode>()
-            //        .HasOne(node => node.RightChild)
-            //        .WithOne()
-            //        .HasForeignKey<BinaryTreeNode>(node => node.RightChildId);
+                entity.Property(se => se.Points).HasDefaultValue(0);
+                entity.Property(se => se.HasPause).HasDefaultValue(false);
             });
 
             

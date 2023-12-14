@@ -30,6 +30,10 @@ namespace TournamentApp
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
             if (!await _roleManager.RoleExistsAsync(UserRoles.Organizer))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Organizer));
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Team))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Team));
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Player))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Player));
             if (!await _roleManager.RoleExistsAsync(UserRoles.Referee))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Referee));
 
@@ -54,7 +58,7 @@ namespace TournamentApp
                 LastName = "adminn"
             };
             await _userManager.CreateAsync(admin, "AdminPassword123!"); // <-- admin password
-            await _userManager.AddToRolesAsync(admin, new List<string>(){ UserRoles.Admin, UserRoles.Organizer, UserRoles.User });
+            await _userManager.AddToRolesAsync(admin, new List<string>(){ UserRoles.Admin, UserRoles.Organizer, UserRoles.User, UserRoles.Team, UserRoles.Player, UserRoles.Referee });
 
             //create ref
             var referee = new User()
@@ -152,6 +156,7 @@ namespace TournamentApp
                 };
 
                 await _userManager.CreateAsync(teamUser, $"Team{teamsList[i].ShortTeamName}123!");
+                await _userManager.AddToRoleAsync(teamUser, UserRoles.Team);
 
                 var team = new Team()
                 {
@@ -209,6 +214,7 @@ namespace TournamentApp
                     };
 
                     await _userManager.CreateAsync(playerUser, $"Player{team.ShortTeamName}123!");
+                    await _userManager.AddToRoleAsync(playerUser, UserRoles.Player);
 
                     var player = new Player()
                     {
@@ -289,7 +295,7 @@ namespace TournamentApp
                 EndDate = DateTime.Now,
                 City = "Poznań",
                 TeamCount = teamCount,
-                EliminationAlgorithm = "ClassicElimination",
+                EliminationAlgorithm = EliminationTypes.SingleElimination,
                 OrganizerId = organizerT.Id,
             };
 

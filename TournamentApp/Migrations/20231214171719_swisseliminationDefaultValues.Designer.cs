@@ -12,8 +12,8 @@ using TournamentApp.Data;
 namespace TournamentApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231207200751_defaultUserImage")]
-    partial class defaultUserImage
+    [Migration("20231214171719_swisseliminationDefaultValues")]
+    partial class swisseliminationDefaultValues
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -436,6 +436,31 @@ namespace TournamentApp.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("TournamentApp.Models.SwissElimination", b =>
+                {
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasPause")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("TournamentId", "TeamId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("SwissEliminations");
+                });
+
             modelBuilder.Entity("TournamentApp.Models.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -482,9 +507,8 @@ namespace TournamentApp.Migrations
                     b.Property<string>("City")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EliminationAlgorithm")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("EliminationAlgorithm")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -774,6 +798,25 @@ namespace TournamentApp.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("TournamentApp.Models.SwissElimination", b =>
+                {
+                    b.HasOne("TournamentApp.Models.Team", "Team")
+                        .WithMany("SwissElimination")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TournamentApp.Models.Tournament", "Tournament")
+                        .WithMany("SwissElimination")
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("Tournament");
+                });
+
             modelBuilder.Entity("TournamentApp.Models.Team", b =>
                 {
                     b.HasOne("TournamentApp.Models.User", "User")
@@ -815,6 +858,8 @@ namespace TournamentApp.Migrations
                 {
                     b.Navigation("Players");
 
+                    b.Navigation("SwissElimination");
+
                     b.Navigation("Team1Games");
 
                     b.Navigation("Team2Games");
@@ -823,6 +868,8 @@ namespace TournamentApp.Migrations
             modelBuilder.Entity("TournamentApp.Models.Tournament", b =>
                 {
                     b.Navigation("Games");
+
+                    b.Navigation("SwissElimination");
                 });
 
             modelBuilder.Entity("TournamentApp.Models.User", b =>

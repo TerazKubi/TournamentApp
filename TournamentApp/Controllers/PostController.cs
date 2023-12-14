@@ -47,6 +47,7 @@ namespace TournamentApp.Controllers
             return Ok(posts);
         }
 
+        [Authorize(Roles = $"{UserRoles.Organizer},{UserRoles.Admin},{UserRoles.Player},{UserRoles.Team}" )]
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -60,6 +61,11 @@ namespace TournamentApp.Controllers
 
             if(!_userRepository.UserExists(postCreate.AuthorId)) 
                 return BadRequest(ModelState);
+
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (!(postCreate.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
 
 
             var postMap = _mapper.Map<Post>(postCreate);

@@ -66,6 +66,11 @@ namespace TournamentApp.Controllers
             if(!_userRepository.UserExists(commentCreate.AuthorId))
                 return BadRequest(ModelState);
 
+            var currentUserId = _userManager.GetUserId(User);
+            bool isAdmin = User.IsInRole(UserRoles.Admin);
+
+            if (!(commentCreate.AuthorId.Equals(currentUserId) || isAdmin)) return Forbid();
+
             var comment = _mapper.Map<Comment>(commentCreate);
 
 
