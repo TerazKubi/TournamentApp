@@ -27,6 +27,15 @@ namespace TournamentApp.Dto
         public string ShortTeamName { get; set; }
         public string City { get; set; }
         public string CoachFullName { get; set; }
+
+        public UserImageUrlDto User { get; set; }
         //public int UserId { get; set; }
+    }
+
+    public class TeamAsAuthorDto
+    {
+        public int Id { get; set; }
+        public string TeamName { get; set; }
+        public string ShortTeamName { get; set; }
     }
 }

@@ -11,6 +11,9 @@ namespace TournamentApp.Helper
         {
             CreateMap<User, UserDto>();
             CreateMap<User, UserNoDetailsDto>();
+            CreateMap<User, UserAsAuthorDto>();
+            CreateMap<User, UserImageUrlDto>();
+            //CreateMap<UserImageUrlDto, User>();
             CreateMap<UserDto, User>();
             CreateMap<UserCreate, User>();
 
@@ -35,15 +38,18 @@ namespace TournamentApp.Helper
 
             CreateMap<Player, PlayerDto>();
             CreateMap<Player, PlayerNoDetailsDto>();
+            CreateMap<Player, PlayerAsAuthor>();
             CreateMap<PlayerDto, Player>();
             CreateMap<PlayerCreate, Player>();
 
             CreateMap<Team, TeamDto>();
             CreateMap<Team, TeamNoDetailsDto>();
+            CreateMap<Team, TeamAsAuthorDto>();
             CreateMap<TeamDto, Team>();
             CreateMap<TeamCreate, Team>();
 
             CreateMap<Organizer, OrganizerDto>();
+            CreateMap<Organizer, OrganizerAuthorDto>();
             CreateMap<OrganizerDto, Organizer>();
             CreateMap<OrganizerCreate, Organizer>();
 

@@ -61,8 +61,16 @@ namespace TournamentApp.Repository
 
         public Game GetTournamentRootGame(int id)
         {
-            var tournament = GetTournament(id);
+            //var tournament = GetTournament(id);
+            //var games = tournament.Games;
+            //return games.OrderByDescending(g => g.Round).FirstOrDefault();
+            var tournament = _context.Tournaments.Where(t => t.Id == id)
+                .Include(t => t.Games)
+                .Include(t => t.Teams).ThenInclude(t => t.User)
+                .Include(t => t.Organizer).ThenInclude(o => o.User)
+                .FirstOrDefault();
             var games = tournament.Games;
+
             return games.OrderByDescending(g => g.Round).FirstOrDefault();
         }
 
@@ -71,6 +79,13 @@ namespace TournamentApp.Repository
             var tournament = GetTournament(id);
             var games = tournament.Games;
             return games.Where(g => (g.Team1Id == null && g.Team2Id != null) || (g.Team1Id != null && g.Team2Id == null)).FirstOrDefault();
+        }
+
+        public List<Tournament> GetTournamentsByTeamId(int teamId)
+        {
+            return _context.Tournaments.Where(t => t.Teams.Any(team => team.Id == teamId))
+                .Include(t => t.Organizer).ThenInclude(o => o.User)
+                .ToList();
         }
     }
 }

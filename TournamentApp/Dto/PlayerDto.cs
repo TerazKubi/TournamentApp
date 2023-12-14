@@ -27,4 +27,8 @@ namespace TournamentApp.Dto
         public string UserId { get; set; }
         public UserNoDetailsDto User { get; set; }
     }
+    public class PlayerAsAuthor
+    {
+        public int Id { get; set; }
+    }
 }

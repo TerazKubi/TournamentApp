@@ -18,13 +18,15 @@ namespace TournamentApp.Controllers
         private readonly ITeamRepository _teamRepository;
         private readonly IUserRepository _userRepository;
         private readonly IPostRepository _postRepository;
+        private readonly ITournamentRepository _tournamentRespository;
         private readonly IMapper _mapper;
-        public TeamController(ITeamRepository teamRepository, IMapper mapper, IUserRepository userRepository, IPostRepository postRepository)
+        public TeamController(ITeamRepository teamRepository, IMapper mapper, IUserRepository userRepository, IPostRepository postRepository, ITournamentRepository tournamentRespository)
         {
             _teamRepository = teamRepository;
             _userRepository = userRepository;
             _mapper = mapper;
             _postRepository = postRepository;
+            _tournamentRespository = tournamentRespository;
         }
 
 
@@ -58,6 +60,7 @@ namespace TournamentApp.Controllers
             return Ok(team);
         }
 
+
         [HttpGet("{teamId}/players")]
         [ProducesResponseType(200, Type = typeof(List<PlayerDto>))]
         [ProducesResponseType(400)]
@@ -73,6 +76,23 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(players);
+        }
+
+        [HttpGet("{teamId}/tournaments")]
+        [ProducesResponseType(200, Type = typeof(List<TournamentNoDetailsDto>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetTeamTournaments(int teamId)
+        {
+            if (!_teamRepository.TeamExists(teamId))
+                return NotFound();
+
+            var tournaments = _mapper.Map<List<TournamentNoDetailsDto>>(_tournamentRespository.GetTournamentsByTeamId(teamId));
+
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(tournaments);
         }
 
         [HttpGet("{teamId}/posts")]

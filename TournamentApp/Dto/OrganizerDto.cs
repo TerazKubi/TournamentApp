@@ -9,4 +9,10 @@ namespace TournamentApp.Dto
         public UserDto User { get; set; }
         public string UserId { get; set; }
     }
+
+    public class OrganizerAuthorDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
 }

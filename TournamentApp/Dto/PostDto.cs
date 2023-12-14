@@ -10,7 +10,7 @@ namespace TournamentApp.Dto
 
         //=========================================================================
         //public int AuthorId { get; set; }
-        public UserNoDetailsDto Author {  get; set; }
+        public UserAsAuthorDto Author {  get; set; }
         public List<CommentDto> Comments { get; set; } = new List<CommentDto>();
     }
 }

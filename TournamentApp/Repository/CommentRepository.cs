@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using TournamentApp.Data;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
@@ -42,8 +43,11 @@ namespace TournamentApp.Repository
 
         public List<Comment> GetCommentsByPostId(int postId)
         {
-            return _context.Comments.Where(comment => 
-            comment.PostId == postId).ToList();
+            return _context.Comments
+                .Include(c => c.Author).ThenInclude(a => a.Organizer)
+                .Include(c => c.Author).ThenInclude(a => a.Team)
+                .Include(c => c.Author).ThenInclude(a => a.Player)
+                .Where(comment => comment.PostId == postId).ToList();
         }
 
         public bool Save()

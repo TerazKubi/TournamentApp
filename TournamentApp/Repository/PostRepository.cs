@@ -33,8 +33,15 @@ namespace TournamentApp.Repository
         public Post GetPostById(int id)
         {
             return _context.Posts.Where(post => post.Id == id)
-                .Include(p => p.Author)
-                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt)).ThenInclude(c => c.Author)
+                .Include(p => p.Author).ThenInclude(a => a.Team)
+                .Include(p => p.Author).ThenInclude(a => a.Organizer)
+                .Include(p => p.Author).ThenInclude(a => a.Player)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Team)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Organizer)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Player)
                 .FirstOrDefault();
         }
 
@@ -42,9 +49,16 @@ namespace TournamentApp.Repository
         {
             
             return _context.Posts
-                .Include(p => p.Author)
+                .Include(p => p.Author).ThenInclude(a => a.Team)
+                .Include(p => p.Author).ThenInclude(a => a.Organizer)
+                .Include(p => p.Author).ThenInclude(a => a.Player)
                 .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
-                .ThenInclude(c => c.Author).ToList();
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Team)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Organizer)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Player)
+                .ToList();
         }
 
         public List<Post> GetPostsByUserId(string userId)

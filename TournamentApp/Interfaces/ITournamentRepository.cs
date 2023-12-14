@@ -6,6 +6,7 @@ namespace TournamentApp.Interfaces
     {
         List<Tournament> GetTournaments();
         List<Tournament> GetTournamentsByOrganizerId(int organizerId);
+        List<Tournament> GetTournamentsByTeamId(int teamId);
         Tournament GetTournament(int id);
         Game GetTournamentRootGame(int id);
         Game GetTournamentGameWithOneTeamAsigned(int id);
