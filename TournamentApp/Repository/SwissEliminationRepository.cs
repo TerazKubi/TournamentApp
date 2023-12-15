@@ -17,10 +17,21 @@ namespace TournamentApp.Repository
             return Save();
         }
 
+        public SwissElimination GetSwissElimination(int tournamentId, int teamId)
+        {
+            return _context.SwissEliminations.Where(e => e.TournamentId == tournamentId &&  e.TeamId == teamId).FirstOrDefault();
+        }
+
         public bool Save()
         {
             var saved = _context.SaveChanges();
             return saved > 0 ? true : false;
+        }
+
+        public bool UpdateSwissTable(SwissElimination swissElimination)
+        {
+            _context.Update(swissElimination);
+            return Save();
         }
     }
 }

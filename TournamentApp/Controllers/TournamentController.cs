@@ -252,8 +252,61 @@ namespace TournamentApp.Controllers
                 });
             }
 
+            if (!_swissRepository.CreateSwissTableFromList(swissTable)) return false;
 
-            return _swissRepository.CreateSwissTableFromList(swissTable);
+
+
+            //prepare games
+            var gameList = new List<Game>();
+            int gamesForRound = (int)Math.Floor((double)tournament.Teams.Count / 2);
+            for (int i=1; i<= rounds; i++)
+            {
+                for(int j=0; j<gamesForRound; j++)
+                {
+                    gameList.Add(new Game
+                    {
+                        KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                        TournamentId = tournament.Id,
+                        Round = i
+                    });
+                }
+            }
+
+            if(!_gameRepository.CreateGamesFromList(gameList)) return false;
+
+
+            //first round team assignment
+            var teamsList = tournament.Teams;
+            Shuffle(teamsList);
+
+            var games = tournament.Games.Where(g => g.Round == 1).ToList();
+
+            foreach (var game in games)
+            {
+                if (!(teamsList.Count >= 2)) break;
+                
+                game.Team1 = teamsList[0];
+                game.Team1.Id = teamsList[0].Id;
+                game.Team2 = teamsList[1];
+                game.Team2.Id = teamsList[1].Id;
+
+                teamsList.RemoveAt(0);
+                teamsList.RemoveAt(0);
+                
+            }
+            if (!_gameRepository.UpdateGamesFromList(games)) return false;
+
+            if(teamsList.Count == 1)
+            {
+                var lastTeam = teamsList[0];
+                var swissTableRow = _swissRepository.GetSwissElimination(tournament.Id, lastTeam.Id);
+                swissTableRow.Points += 3;
+                swissTableRow.HasPause = true;
+
+                if(!_swissRepository.UpdateSwissTable(swissTableRow)) return false;
+            }
+
+            return true;
         }
         private bool InitSingleEliminationTournament(Tournament tournament, List<int> teamsIdList)
         {
@@ -373,6 +426,22 @@ namespace TournamentApp.Controllers
             int low = 0;
             int high = listCount - 1;
             return random.Next(low, high);
+        }
+
+        private void Shuffle(List<Team> list)
+        {
+            Random random = new Random();
+
+            int n = list.Count;
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = random.Next(0, i + 1);
+
+                // Swap elements at positions i and j
+                var temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
         }
     }
 

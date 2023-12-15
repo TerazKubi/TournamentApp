@@ -60,6 +60,18 @@ namespace TournamentApp.Repository
             return saved > 0 ? true : false;
         }
 
+        public bool CreateGamesFromList(List<Game> gameList)
+        {
+            _context.AddRange(gameList);
+            return Save();
+        }
+
+        public bool UpdateGamesFromList(List<Game> gamesList)
+        {
+            _context.UpdateRange(gamesList);
+            return Save();
+        }
+
         //public Game GetTournamentRootGame(int tournamentId)
         //{
         //    return _context.Games.Where(g => g.TournamentId == tournamentId).Include(g => g.Children).OrderByDescending(g => g.Round).FirstOrDefault();
