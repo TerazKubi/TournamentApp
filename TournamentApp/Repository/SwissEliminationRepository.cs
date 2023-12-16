@@ -22,6 +22,11 @@ namespace TournamentApp.Repository
             return _context.SwissEliminations.Where(e => e.TournamentId == tournamentId &&  e.TeamId == teamId).FirstOrDefault();
         }
 
+        public List<SwissElimination> GetSwissEliminationList(int tournamentId)
+        {
+            return _context.SwissEliminations.Where(e => e.TournamentId == tournamentId).ToList();
+        }
+
         public bool Save()
         {
             var saved = _context.SaveChanges();

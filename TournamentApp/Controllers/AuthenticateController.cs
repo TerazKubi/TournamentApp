@@ -120,82 +120,120 @@ namespace TournamentApp.Controllers
 
         }
 
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost]
+        [Route("AddRole/{userId}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> AddRole(string userId, string role)
+        {
 
+            if (!IsValidRole(role))
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Invalid role!" });
+            
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "User doesn't exist!" });
+
+            if (!await _roleManager.RoleExistsAsync(role))
+                await _roleManager.CreateAsync(new IdentityRole(role));
+
+            if (await _roleManager.RoleExistsAsync(role))
+            {
+                await _userManager.AddToRoleAsync(user, role);
+                return Ok();
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = $"Failed to add user to the {role} role." });
+        }
+
+
+
+        //[Authorize(Roles = UserRoles.Admin)]
         //[HttpPost]
-        //[Route("ResetPassword")]
-        //public async Task<IActionResult> ResetPassword([FromBody] ResetPassword model)
+        //[Route("AddOrganizerRole/{userId}")]
+        //public async Task<IActionResult> AddOrganizerRole(string userId)
         //{
-        //    var user = await _userManager.FindByNameAsync(model.Username);
+        //    var user = await _userManager.FindByIdAsync(userId);
         //    if (user == null)
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User doesn't exists!" });
+
+        //    if (!await _roleManager.RoleExistsAsync(UserRoles.Organizer))
+        //        await _roleManager.CreateAsync(new IdentityRole(UserRoles.Organizer));
+
+        //    if (await _roleManager.RoleExistsAsync(UserRoles.Organizer))
         //    {
-        //        // User not found
-        //        return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Error", Message = "User not found!" });
+        //        await _userManager.AddToRoleAsync(user, UserRoles.Organizer);
         //    }
 
-        //    // Validate the token
-        //    var isTokenValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "ResetPassword", model.Token);
-        //    if (!isTokenValid)
-        //    {
-        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Invalid reset token!" });
-        //    }
-
-        //    // Check if the reset token has not expired
-        //    var tokenExpiration = await _userManager.GetTokenAsync(user, TokenOptions.DefaultProvider, "ResetPassword");
-        //    var t = _userManager.
-        //    if (string.IsNullOrEmpty(tokenExpiration) || DateTimeOffset.Parse(tokenExpiration) <= DateTimeOffset.UtcNow)
-        //    {
-        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Reset token has expired!" });
-        //    }
-
-        //    // Reset the user's password
-        //    var resetPasswordResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
-        //    if (!resetPasswordResult.Succeeded)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Password reset failed! Please try again." });
-        //    }
-
-        //    return Ok(new Response { Status = "Success", Message = "Password reset successfully!" });
+        //    return Ok();
         //}
 
-        [Authorize(Roles = UserRoles.Admin)]
-        [HttpPost]
-        [Route("AddOrganizerRole/{userId}")]
-        public async Task<IActionResult> AddOrganizerRole(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User doesn't exists!" });
+        //[Authorize(Roles = UserRoles.Admin)]
+        //[HttpPost]
+        //[Route("AddRefereeRole/{userId}")]
+        //public async Task<IActionResult> AddRefereeRole(string userId)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null)
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User doesn't exists!" });
 
-            if (!await _roleManager.RoleExistsAsync(UserRoles.Organizer))
-                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Organizer));
+        //    if (!await _roleManager.RoleExistsAsync(UserRoles.Referee))
+        //        await _roleManager.CreateAsync(new IdentityRole(UserRoles.Referee));
 
-            if (await _roleManager.RoleExistsAsync(UserRoles.Organizer))
-            {
-                await _userManager.AddToRoleAsync(user, UserRoles.Organizer);
-            }
+        //    if (await _roleManager.RoleExistsAsync(UserRoles.Referee))
+        //    {
+        //        await _userManager.AddToRoleAsync(user, UserRoles.Referee);
+        //    }
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
-        [Authorize(Roles = UserRoles.Admin)]
-        [HttpPost]
-        [Route("AddRefereeRole/{userId}")]
-        public async Task<IActionResult> AddRefereeRole(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User doesn't exists!" });
+        //[Authorize(Roles = UserRoles.Admin)]
+        //[HttpPost]
+        //[Route("AddPlayerRole/{userId}")]
+        //[ProducesResponseType(200)]
+        //[ProducesResponseType(400)]
+        //public async Task<IActionResult> AddPlayerRole(string userId)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null)
+        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "User doesn't exists!" });
 
-            if (!await _roleManager.RoleExistsAsync(UserRoles.Referee))
-                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Referee));
+        //    if (!await _roleManager.RoleExistsAsync(UserRoles.Player))
+        //        await _roleManager.CreateAsync(new IdentityRole(UserRoles.Player));
 
-            if (await _roleManager.RoleExistsAsync(UserRoles.Referee))
-            {
-                await _userManager.AddToRoleAsync(user, UserRoles.Referee);
-            }
+        //    if (await _roleManager.RoleExistsAsync(UserRoles.Player))
+        //    {
+        //        await _userManager.AddToRoleAsync(user, UserRoles.Player);
+        //    }
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
+
+        //[Authorize(Roles = UserRoles.Admin)]
+        //[HttpPost]
+        //[Route("AddTeamRole/{userId}")]
+        //[ProducesResponseType(200)]
+        //[ProducesResponseType(400)]
+        //public async Task<IActionResult> AddTeamRole(string userId)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null)
+        //        return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "User doesn't exists!" });
+
+        //    if (!await _roleManager.RoleExistsAsync(UserRoles.Team))
+        //        await _roleManager.CreateAsync(new IdentityRole(UserRoles.Team));
+
+        //    if (await _roleManager.RoleExistsAsync(UserRoles.Team))
+        //    {
+        //        await _userManager.AddToRoleAsync(user, UserRoles.Team);
+        //    }
+
+        //    return Ok();
+        //}
 
         [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
@@ -254,6 +292,13 @@ namespace TournamentApp.Controllers
                 );
 
             return token;
+        }
+
+
+        private bool IsValidRole(string role)
+        {
+            var validRoles = new[] { UserRoles.Admin, UserRoles.Organizer, UserRoles.Referee, UserRoles.Player, UserRoles.Team, UserRoles.User };
+            return validRoles.Contains(role);
         }
     }
 }

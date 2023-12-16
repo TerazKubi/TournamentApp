@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics;
 using TournamentApp.Dto;
 using TournamentApp.Input;
 using TournamentApp.Interfaces;
@@ -134,6 +135,7 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public IActionResult AddPoint(int gameId, int teamId)
         {
             if(!_gameRepository.GameExists(gameId) || !_teamRepository.TeamExists(teamId)) 
@@ -376,6 +378,21 @@ namespace TournamentApp.Controllers
                     return StatusCode(500, ModelState);
                 }
             }
+            else
+            {
+                var tournament = _tournamentRepository.GetTournament(game.TournamentId);
+                tournament.State = "finished";
+                if (!_tournamentRepository.UpdateTournament(tournament))
+                {
+                    ModelState.AddModelError("", "Something went wrong updating tournament");
+                    return StatusCode(500, ModelState);
+                }
+            }
+
+
+            
+
+
             return StatusCode(204, "");
         }
 
@@ -421,23 +438,124 @@ namespace TournamentApp.Controllers
 
             if (!_swissEliminationRepository.UpdateSwissTable(swissTableTeam1))
             {
-                ModelState.AddModelError("", "Something went wrong updating parent game");
+                ModelState.AddModelError("", "Something went wrong updating swiss table");
                 return StatusCode(500, ModelState);
             }
             if (!_swissEliminationRepository.UpdateSwissTable(swissTableTeam2))
             {
-                ModelState.AddModelError("", "Something went wrong updating parent game");
+                ModelState.AddModelError("", "Something went wrong updating swiss table");
                 return StatusCode(500, ModelState);
             }
 
             //check if round has finished
-            // if yes sort teams by points the asign them to round 2 games.
-            //if team nubers is odd make one team to pause
+            if (IsSwissRoundComplete(game.TournamentId, game.Round))
+            {
+                
+                if (!HandleSwissRoundComplete(game.TournamentId, game.Round))
+                    return StatusCode(500, "Something when wrong while handling completed round");
+                
+            }
 
 
 
 
             return StatusCode(204, "");
         }
+
+        private bool IsSwissRoundComplete(int tournamentId, int currentRound)
+        {
+            var tournamentGames = _tournamentRepository.GetTournament(tournamentId).Games.ToList();
+            var roundGames = tournamentGames.Where(g => g.Round == currentRound).ToList();
+
+            return roundGames.All(g => g.WinnerId.HasValue);
+        }
+
+        private bool HandleSwissRoundComplete(int tournamentId, int currentRound)
+        {
+            var tournament = _tournamentRepository.GetTournament(tournamentId);
+            var games = tournament.Games.ToList();
+
+            int maxRound = games.Max(g => g.Round);
+
+            if (currentRound == maxRound)
+            {
+                tournament.State = "finished";
+                if (!_tournamentRepository.UpdateTournament(tournament)) return false;
+                return true;
+            }
+
+            int newCurrentRound = currentRound + 1;
+
+            var roundGames = games.Where(g => g.Round == newCurrentRound).ToList();
+
+            var sortedTeams = GetTeamsSortedByPointsDesc(tournamentId);
+
+            
+            if(sortedTeams.Count % 2 != 0)
+            {
+                var swissTableSorted = GetSwissTableSortedAsc(tournamentId);
+                Team TeamToPause = null;
+                foreach( var swiss in swissTableSorted)
+                {
+
+                    if (swiss.HasPause == true) continue;
+                    else
+                    {
+                        TeamToPause = swiss.Team;
+                        break;
+                    }
+                }
+
+                var swissTableRow = _swissEliminationRepository.GetSwissElimination(tournamentId, TeamToPause.Id);
+                swissTableRow.HasPause = true;
+                swissTableRow.Points += 3;
+
+                if(!_swissEliminationRepository.UpdateSwissTable(swissTableRow)) return false;
+                sortedTeams.Remove(TeamToPause);
+            }
+
+            foreach (var game in roundGames)
+            {
+                if (!(sortedTeams.Count >= 2)) break;
+
+                game.Team1 = sortedTeams[0];
+                game.Team1.Id = sortedTeams[0].Id;
+                sortedTeams.RemoveAt(0);
+
+                game.Team2 = sortedTeams[0];
+                game.Team2.Id = sortedTeams[0].Id;
+                sortedTeams.RemoveAt(0);
+            }
+
+            if (!_gameRepository.UpdateGamesFromList(roundGames)) return false;
+
+
+            
+
+            return true;
+        }
+
+        private List<Team> GetTeamsSortedByPointsDesc(int tournamentId)
+        {
+            var swissTeams = _swissEliminationRepository.GetSwissEliminationList(tournamentId);
+            var swissTeamsSorted = swissTeams.OrderByDescending(s => s.Points).ToList();
+
+            List<Team> teams = new List<Team>();
+            foreach (var sts in swissTeamsSorted) 
+            {
+                teams.Add(sts.Team);
+            }
+
+            return teams;
+        }
+
+        private List<SwissElimination> GetSwissTableSortedAsc(int tournamentId)
+        {
+            var swissTeams = _swissEliminationRepository.GetSwissEliminationList(tournamentId);
+            var swissTeamsSorted = swissTeams.OrderBy(s => s.Points).ToList();
+
+            return swissTeamsSorted;
+        }
+
     }
 }

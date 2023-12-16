@@ -67,13 +67,22 @@ namespace TournamentApp.Controllers
 
             return Ok(tournament);
         }
+
         [HttpGet("{tournamentId}/rootGame")]
         [ProducesResponseType(200, Type = typeof(GameNode))]
         [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public IActionResult GetTournamentRootGame(int tournamentId)
         {
             if (!_tournamentRepository.TournamentExists(tournamentId))
                 return NotFound();
+
+            var tournament = _tournamentRepository.GetTournament(tournamentId);
+            if(tournament.EliminationAlgorithm == EliminationTypes.SwissElimination)
+            {
+                ModelState.AddModelError("error", "This tournament doesn't support root game");
+                return BadRequest(ModelState);
+            }
 
             var rootGame = _mapper.Map<GameNode>(_tournamentRepository.GetTournamentRootGame(tournamentId));
 
@@ -82,6 +91,31 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(rootGame);
+        }
+
+        [HttpGet("{tournamentId}/swissTable")]
+        [ProducesResponseType(200, Type = typeof(List<SwissElimination>))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public IActionResult GetTournamentSwissTable(int tournamentId)
+        {
+            if (!_tournamentRepository.TournamentExists(tournamentId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var tournament = _tournamentRepository.GetTournament(tournamentId);
+            if (tournament.EliminationAlgorithm != EliminationTypes.SwissElimination)
+            {
+                ModelState.AddModelError("error", "This tournament doesn't support root game");
+                return BadRequest(ModelState);
+            }
+
+
+            var swissTable = _swissRepository.GetSwissEliminationList(tournamentId);
+
+            return Ok(swissTable);
         }
 
         [Authorize(Roles = UserRoles.Organizer)]
@@ -166,10 +200,9 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
             }
 
-
-
             var tournamentMap = _mapper.Map<Tournament>(tournamentCreate.Tournament);
-            tournamentMap.Teams = _teamRepository.GetTeamsFromList(tournamentCreate.teamsIdList);
+            var teamList = _teamRepository.GetTeamsFromList(tournamentCreate.teamsIdList);          
+            tournamentMap.Teams = teamList;
 
             if (!_tournamentRepository.CreateTournament(tournamentMap))
             {
@@ -178,9 +211,11 @@ namespace TournamentApp.Controllers
             }
 
             
+
+            
             if(tournamentMap.EliminationAlgorithm == EliminationTypes.SingleElimination)
             {
-                if(!InitSingleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
+                if (!InitSingleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
                 {
                     ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket.");
                     return BadRequest(ModelState);
@@ -192,7 +227,7 @@ namespace TournamentApp.Controllers
             }
             else if (tournamentMap.EliminationAlgorithm == EliminationTypes.SwissElimination)
             {
-                if(!InitSwissEliminationTournament(tournamentMap, (int)tournamentCreate.SwissRounds))
+                if (!InitSwissEliminationTournament(tournamentMap, (int)tournamentCreate.SwissRounds))
                 {
                     ModelState.AddModelError("errorMessage", "Error while initializing swiss elimination tournamnet.");
                     return BadRequest(ModelState);
@@ -200,38 +235,7 @@ namespace TournamentApp.Controllers
             }
 
 
-            //var depth = (int)Math.Ceiling(Math.Log2(tournamentMap.Teams.ToList().Count));
-
-            //var rootGame = BuildTreeRecursive(depth, tournamentMap.Id);
-
-            //AssignTeamsForLeafNodes(rootGame, tournamentCreate.teamsIdList);
-
-            ////PrintTree(rootGame, 0);
-
-
-            //if (rootGame != null)
-            //{
-            //    Console.WriteLine("Controller: Saving game...");
-            //    Console.WriteLine("Parent: " + rootGame.Parent);
-            //    _gameRepository.CreateGame(rootGame);
-            //}
-
-            ////check for early advance if team numbers were odd
-            //var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournamentMap.Id);
-            //if(gameWithOneTeam != null)
-            //{
-            //    var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
-            //    if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
-            //    {
-            //        var parentGame = _gameRepository.GetGame((int)gameWithOneTeam.ParentId);
-            //        parentGame.Team1Id = teamId;
-            //        if (!_gameRepository.UpdateGame(parentGame))
-            //        {
-            //            ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: "+parentGame.Id);
-            //            return BadRequest(ModelState);
-            //        }
-            //    }
-            //}
+            
 
 
             return Ok("Successfully created");
@@ -243,7 +247,8 @@ namespace TournamentApp.Controllers
         {
             //prepare swiss table
             List<SwissElimination> swissTable = new List<SwissElimination>();
-            foreach (var team in tournament.Teams)
+            var teamList = tournament.Teams.ToList();
+            foreach (var team in teamList)
             {
                 swissTable.Add(new SwissElimination
                 {
@@ -276,29 +281,29 @@ namespace TournamentApp.Controllers
 
 
             //first round team assignment
-            var teamsList = tournament.Teams;
-            Shuffle(teamsList);
+            
+            Shuffle(teamList);
 
             var games = tournament.Games.Where(g => g.Round == 1).ToList();
 
             foreach (var game in games)
             {
-                if (!(teamsList.Count >= 2)) break;
+                if (!(teamList.Count >= 2)) break;
                 
-                game.Team1 = teamsList[0];
-                game.Team1.Id = teamsList[0].Id;
-                game.Team2 = teamsList[1];
-                game.Team2.Id = teamsList[1].Id;
+                game.Team1 = teamList[0];
+                game.Team1.Id = teamList[0].Id;
+                game.Team2 = teamList[1];
+                game.Team2.Id = teamList[1].Id;
 
-                teamsList.RemoveAt(0);
-                teamsList.RemoveAt(0);
+                teamList.RemoveAt(0);
+                teamList.RemoveAt(0);
                 
             }
             if (!_gameRepository.UpdateGamesFromList(games)) return false;
 
-            if(teamsList.Count == 1)
+            if(teamList.Count == 1)
             {
-                var lastTeam = teamsList[0];
+                var lastTeam = teamList[0];
                 var swissTableRow = _swissRepository.GetSwissElimination(tournament.Id, lastTeam.Id);
                 swissTableRow.Points += 3;
                 swissTableRow.HasPause = true;

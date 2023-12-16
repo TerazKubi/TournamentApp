@@ -7,5 +7,6 @@ namespace TournamentApp.Interfaces
         bool CreateSwissTableFromList(List<SwissElimination> swissTable);
         bool UpdateSwissTable(SwissElimination swissElimination);
         SwissElimination GetSwissElimination(int tournamentId, int teamId);
+        List<SwissElimination> GetSwissEliminationList(int tournamentId);
     }
 }
