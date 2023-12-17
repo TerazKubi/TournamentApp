@@ -157,6 +157,12 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(400)]
         public IActionResult CreateTournament([FromBody] TournamentCreateWrapper tournamentCreate)
         {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("errorMessage", "modelState error");
+                return BadRequest(ModelState);
+            }
+
             if (tournamentCreate.Tournament == null || tournamentCreate.teamsIdList == null)
             {
                 ModelState.AddModelError("errorMessage", "tournament or teamIdlist is null");
@@ -172,6 +178,12 @@ namespace TournamentApp.Controllers
             if(tournamentCreate.teamsIdList.Count != tournamentCreate.Tournament.TeamCount)
             {
                 ModelState.AddModelError("errorMessage", "Team count is not equal to teamIdList count");
+                return BadRequest(ModelState);
+            }
+
+            if (!AllUnique(tournamentCreate.teamsIdList))
+            {
+                ModelState.AddModelError("errorMessage", "Team id list must be all unique");
                 return BadRequest(ModelState);
             }
 
@@ -447,6 +459,11 @@ namespace TournamentApp.Controllers
                 list[i] = list[j];
                 list[j] = temp;
             }
+        }
+
+        private bool AllUnique(List<int> list)
+        {
+            return list.Distinct().Count() == list.Count; 
         }
     }
 
