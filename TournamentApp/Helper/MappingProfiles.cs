@@ -56,6 +56,9 @@ namespace TournamentApp.Helper
             CreateMap<GameComment, GameCommentDto>();
             CreateMap<GameCommentDto, GameComment>();
             CreateMap<GameCommentCreate, GameComment>();
+
+
+            CreateMap<SwissElimination, SwissEliminationDto>();
             
             
         }

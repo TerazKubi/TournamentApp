@@ -72,6 +72,11 @@ namespace TournamentApp.Repository
             return Save();
         }
 
+        public List<Game> GetRoundOneGames(int tournamentId)
+        {
+            return _context.Games.Where(g => g.TournamentId == tournamentId && g.Round == 1).ToList();
+        }
+
         //public Game GetTournamentRootGame(int tournamentId)
         //{
         //    return _context.Games.Where(g => g.TournamentId == tournamentId).Include(g => g.Children).OrderByDescending(g => g.Round).FirstOrDefault();

@@ -113,7 +113,7 @@ namespace TournamentApp.Controllers
             }
 
 
-            var swissTable = _swissRepository.GetSwissEliminationList(tournamentId);
+            var swissTable =_mapper.Map<List<SwissEliminationDto>>(_swissRepository.GetSwissEliminationList(tournamentId));
 
             return Ok(swissTable);
         }
@@ -331,35 +331,38 @@ namespace TournamentApp.Controllers
 
             var rootGame = BuildTreeRecursive(depth, tournament.Id);
 
-            AssignTeamsForLeafNodes(rootGame, teamsIdList);
-
-            //PrintTree(rootGame, 0);
-
-
+            //add root game and all leaf nodes to data base
             if (rootGame != null)
             {
-                Console.WriteLine("Controller: Saving game...");
-                Console.WriteLine("Parent: " + rootGame.Parent);
-                _gameRepository.CreateGame(rootGame);
+                if (!_gameRepository.CreateGame(rootGame)) return false;
             }
 
-            //check for early advance if team numbers were odd
-            var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournament.Id);
-            if (gameWithOneTeam != null)
-            {
-                var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
-                if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
-                {
-                    var parentGame = _gameRepository.GetGame((int)gameWithOneTeam.ParentId);
-                    parentGame.Team1Id = teamId;
-                    if (!_gameRepository.UpdateGame(parentGame))
-                    {
-                        //ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: " + parentGame.Id);
-                        //return BadRequest(ModelState);
-                        return false;
-                    }
-                }
-            }
+
+            Shuffle(teamsIdList);
+
+            if (!AssignTeamsForLeafNodes(tournament.Id, teamsIdList)) return false;
+
+
+            if(!CheckForEarlyAdvance(tournament.Id)) return false;
+            
+
+            ////check for early advance if team numbers were odd
+            //var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournament.Id);
+            //if (gameWithOneTeam != null)
+            //{
+            //    var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
+            //    if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
+            //    {
+            //        var parentGame = _gameRepository.GetGame((int)gameWithOneTeam.ParentId);
+            //        parentGame.Team1Id = teamId;
+            //        if (!_gameRepository.UpdateGame(parentGame))
+            //        {
+            //            //ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: " + parentGame.Id);
+            //            //return BadRequest(ModelState);
+            //            return false;
+            //        }
+            //    }
+            //}
 
             return true;
         }
@@ -404,48 +407,119 @@ namespace TournamentApp.Controllers
             PrintTree(node.Children.ToList()[1], depth + 1);
         }
 
-        private void AssignTeamsForLeafNodes(Game node, List<int> teamIdList)
+        private bool AssignTeamsForLeafNodes(int tournamentId, List<int> teamIdList)
         {
-            if (node != null)
+            var roundOneGames = _gameRepository.GetRoundOneGames(tournamentId);
+
+            //asign teams to round one games as Team1
+            foreach (var game in roundOneGames)
             {
-                if (node.Children.ToList().Count == 0)
-                {
-                    if(teamIdList.Count > 0)
-                    {
-                        int randomTeam1IdPosition = randomPositionFromList(teamIdList.Count);
-                        node.Team1Id = teamIdList[randomTeam1IdPosition];
-                        teamIdList.RemoveAt(randomTeam1IdPosition);
-                    }
-                    
-                    if(teamIdList.Count > 0)
-                    {
-                        int randomTeam2IdPosition = randomPositionFromList(teamIdList.Count);
-                        node.Team2Id = teamIdList[randomTeam2IdPosition];
-                        teamIdList.RemoveAt(randomTeam2IdPosition);
-                    }
+                int position = randomPositionFromList(teamIdList.Count);
 
-                    
-                }
+                game.Team1Id = teamIdList[position];
+                teamIdList.RemoveAt(position);
+            }
 
-                foreach (var game in node.Children.ToList())
-                {
-                    AssignTeamsForLeafNodes(game, teamIdList);
-                }
+            //asign teams to round one games as Team2
+            foreach (var game in roundOneGames)
+            {
+                if (teamIdList.Count == 0) break;
 
+                int position = randomPositionFromList(teamIdList.Count);
+
+                game.Team2Id = teamIdList[position];
+                teamIdList.RemoveAt(position);
+            }
+
+            if(!_gameRepository.UpdateGamesFromList(roundOneGames)) return false;
+
+            return true;
+            //if (node != null)
+            //{
+            //    //if we are in lead node
+            //    if (node.Children.ToList().Count == 0)
+            //    {
+            //        if(teamIdList.Count > 0)
+            //        {
+            //            int randomTeam1IdPosition = randomPositionFromList(teamIdList.Count);
+            //            if(node.Team1Id == null)
+            //                node.Team1Id = teamIdList[randomTeam1IdPosition];
+            //            else
+            //                node.Team2Id = teamIdList[randomTeam1IdPosition];
+            //            teamIdList.RemoveAt(randomTeam1IdPosition);
+            //        }
+
+            //        //if(teamIdList.Count > 0)
+            //        //{
+            //        //    int randomTeam2IdPosition = randomPositionFromList(teamIdList.Count);
+            //        //    node.Team2Id = teamIdList[randomTeam2IdPosition];
+            //        //    teamIdList.RemoveAt(randomTeam2IdPosition);
+            //        //}
+
+
+            //    }
+
+            //    foreach (var game in node.Children.ToList())
+            //    {
+            //        AssignTeamsForLeafNodes(game, teamIdList);
+            //    }
+
+
+
+            //}
+        }
+        private bool CheckForEarlyAdvance(int tournamentId)
+        {
+            var roundOneGames = _gameRepository.GetRoundOneGames(tournamentId);
+
+            foreach (var game in roundOneGames)
+            {
+                if ((game.Team1Id.HasValue && game.Team2Id.HasValue)) continue;
                 
+
+                var teamId = game.Team1Id ?? game.Team2Id;
+
+                if (!game.ParentId.HasValue) return false;
+
+                var parentGame = game.Parent;
+
+                if (parentGame.Team1Id == null)
+                    parentGame.Team1Id = teamId;
+                else
+                    parentGame.Team2Id = teamId;
+
+                if(!_gameRepository.UpdateGame(parentGame)) return false;
+
+
                 
             }
+            return true;
         }
-
         private int randomPositionFromList(int listCount)
         {
             var random = new Random();
             int low = 0;
             int high = listCount - 1;
+            //if (low == high) return low;
             return random.Next(low, high);
         }
 
         private void Shuffle(List<Team> list)
+        {
+            Random random = new Random();
+
+            int n = list.Count;
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = random.Next(0, i + 1);
+
+                // Swap elements at positions i and j
+                var temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
+        }
+        private void Shuffle(List<int> list)
         {
             Random random = new Random();
 

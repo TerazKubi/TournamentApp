@@ -6,6 +6,7 @@ namespace TournamentApp.Interfaces
     {
         List<Game> GetGames();
         Game GetGame(int id);
+        List<Game> GetRoundOneGames(int tournamentId);
         //Game GetTournamentRootGame(int tournamentId);
         bool CreateGame(Game game);
         bool CreateGamesFromList(List<Game> gameList);
