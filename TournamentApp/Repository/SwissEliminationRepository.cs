@@ -24,7 +24,7 @@ namespace TournamentApp.Repository
 
         public List<SwissElimination> GetSwissEliminationList(int tournamentId)
         {
-            return _context.SwissEliminations.Where(e => e.TournamentId == tournamentId).ToList();
+            return _context.SwissEliminations.Where(e => e.TournamentId == tournamentId).OrderByDescending(e => e.Points).ToList();
         }
 
         public bool Save()
