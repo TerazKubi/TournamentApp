@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.NetworkInformation;
 using System.Xml.Linq;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -229,13 +230,17 @@ namespace TournamentApp.Controllers
             {
                 if (!InitSingleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
                 {
-                    ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket.");
+                    ModelState.AddModelError("errorMessage", "Error while initializing single elimination tournamnet.");
                     return BadRequest(ModelState);
                 }
             } 
             else if (tournamentMap.EliminationAlgorithm == EliminationTypes.DoubleElimination)
             {
-
+                if (!InitDoubleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
+                {
+                    ModelState.AddModelError("errorMessage", "Error while initializing double elimination tournamnet.");
+                    return BadRequest(ModelState);
+                }
             }
             else if (tournamentMap.EliminationAlgorithm == EliminationTypes.SwissElimination)
             {
@@ -346,25 +351,152 @@ namespace TournamentApp.Controllers
             if(!CheckForEarlyAdvance(tournament.Id)) return false;
             
 
-            ////check for early advance if team numbers were odd
-            //var gameWithOneTeam = _tournamentRepository.GetTournamentGameWithOneTeamAsigned(tournament.Id);
-            //if (gameWithOneTeam != null)
-            //{
-            //    var teamId = gameWithOneTeam.Team1Id ?? gameWithOneTeam.Team2Id;
-            //    if (_gameRepository.GameExists((int)gameWithOneTeam.ParentId))
-            //    {
-            //        var parentGame = _gameRepository.GetGame((int)gameWithOneTeam.ParentId);
-            //        parentGame.Team1Id = teamId;
-            //        if (!_gameRepository.UpdateGame(parentGame))
-            //        {
-            //            //ModelState.AddModelError("errorMessage", "Error while updating game while creating a bracket. Team id with error: " + parentGame.Id);
-            //            //return BadRequest(ModelState);
-            //            return false;
-            //        }
-            //    }
-            //}
-
             return true;
+        }
+
+        private bool InitDoubleEliminationTournament(Tournament tournament, List<int> teamsIdList)
+        {
+            var depth = (int)Math.Ceiling(Math.Log2(tournament.Teams.ToList().Count));
+
+            var rootGame = BuildTreeRecursive(depth, tournament.Id);
+
+            var levels = CalculateLevelCounts(teamsIdList.Count);
+
+            var loserRoot = BuildLosersTree(levels, tournament.Id);
+
+            var mainRoot = new Game
+            {
+                KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                TournamentId = tournament.Id,
+                Round = levels.Count + 3
+            };
+
+            mainRoot.Children.Add(rootGame);
+            mainRoot.Children.Add(loserRoot);
+
+
+            if (mainRoot != null)
+            {
+                if (!_gameRepository.CreateGame(mainRoot)) return false;
+            }
+
+            //===========================================================
+
+            Shuffle(teamsIdList);
+
+            if (!AssignTeamsForLeafNodes(tournament.Id, teamsIdList)) return false;
+
+
+            if (!CheckForEarlyAdvance(tournament.Id)) return false;
+
+
+
+
+
+
+
+
+
+            Console.WriteLine("\n\n\n Funkcja:-----------------------------------------------------------------");
+            PrintTree(mainRoot);
+            Console.WriteLine("\n-----------------------------------------------------------------");
+            return true;
+        }
+
+        private List<int> CalculateLevelCounts(int n)
+        {
+            int N = n;
+            int maxRounds = (int)Math.Ceiling(Math.Log2(N));
+            List<int> levels = new List<int>();
+
+            levels.Add(N - (int)Math.Pow(2, maxRounds - 1));
+
+            for (int i = 0; i < maxRounds - 1; i++)
+            {
+                int los1 = (int)Math.Ceiling(levels.Last() / 2.0);
+                int los2 = (int)Math.Pow(2, maxRounds - i - 2);
+                levels.Add(los1 + los2);
+            }
+
+            while (levels.Last() > 2)
+            {
+                int los1 = (int)Math.Ceiling(levels.Last() / 2.0);
+                levels.Add(los1);
+            }
+
+            for (int i = 0; i < levels.Count; i++)
+            {
+                levels[i] = (int)Math.Floor(levels[i] / 2.0);
+            }
+
+            levels.Reverse();
+            levels.RemoveAt(0);
+
+            // Print the result
+            Console.WriteLine("Levels: [" + string.Join(", ", levels) + "]");
+            return levels;
+        }
+
+        private Game BuildLosersTree(List<int> levels, int tournamentId)
+        {
+            var root = new Game
+            {
+                KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                TournamentId = tournamentId,
+                Round = levels.Count + 2
+            };
+
+            List<Game> currentLevel = new List<Game>();
+            currentLevel.Add(root);
+
+            foreach (var x in levels)
+            {
+                List<Game> nextLevel = new List<Game>();
+
+                var levelCount = x;
+
+                foreach (var parent in currentLevel)
+                {
+                    if(levelCount > 0)
+                    {
+                        var child = new Game
+                        {
+                            KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                            TournamentId = tournamentId,
+                            Round = parent.Round - 1
+                        };
+                        parent.Children.Add(child);
+                        nextLevel.Add(child);
+
+                        levelCount -= 1;
+                    }
+                    if (levelCount > 0)
+                    {
+                        var child = new Game
+                        {
+                            KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                            TournamentId = tournamentId,
+                            Round = parent.Round - 1
+                        };
+                        parent.Children.Add(child);
+                        nextLevel.Add(child);
+
+                        levelCount -= 1;
+                    }
+
+
+
+                }
+
+                currentLevel = nextLevel;
+
+
+            }
+
+            return root;
+
+
+
         }
 
         private Game BuildTreeRecursive(int depth, int tournamentId, Game parentGame = null)
@@ -392,19 +524,19 @@ namespace TournamentApp.Controllers
 
             return game;
         }
-        private void PrintTree(Game node, int depth)
+        private void PrintTree(Game node)
         {
             if (node == null)
                 return;
 
-            // Print right child
-            PrintTree(node.Children.ToList()[0], depth + 1);
+            Console.WriteLine($"{node.Round}");
+            
 
-            // Print current node
-            Console.WriteLine($"{new string(' ', depth * 4)}{node.Round}");
+            if(node.Children.ToList().Count >= 1)
+                PrintTree(node.Children.ToList()[0]);
 
-            // Print left child
-            PrintTree(node.Children.ToList()[1], depth + 1);
+            if (node.Children.ToList().Count == 2)
+                PrintTree(node.Children.ToList()[1]);
         }
 
         private bool AssignTeamsForLeafNodes(int tournamentId, List<int> teamIdList)

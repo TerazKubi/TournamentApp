@@ -341,7 +341,7 @@ namespace TournamentApp.Controllers
         private ObjectResult HandleGameWinEvent(Game game, int teamId, EliminationTypes eliminationAlgo)
         {
             if (eliminationAlgo == EliminationTypes.SingleElimination) return HandleSingleEliminationWin(game, teamId);
-            //else if (eliminationAlgo == EliminationTypes.DoubleElimination) return;
+            else if (eliminationAlgo == EliminationTypes.DoubleElimination) return HandleDoubleEliminationWin(game, teamId);
             else if (eliminationAlgo == EliminationTypes.SwissElimination) return HandleSwissEliminationWin(game, teamId);
 
             return StatusCode(204, "");
@@ -392,6 +392,84 @@ namespace TournamentApp.Controllers
 
             
 
+
+            return StatusCode(204, "");
+        }
+
+        private ObjectResult HandleDoubleEliminationWin(Game game, int teamId)
+        {
+            game.State = "finished";
+            game.WinnerId = teamId;
+
+            if (game.ParentId != null)
+            {
+                if (!_gameRepository.GameExists((int)game.ParentId))
+                {
+                    ModelState.AddModelError("", "No parent game with id: " + (int)game.ParentId);
+                    return StatusCode(400, ModelState);
+                }
+
+                var parentGame = _gameRepository.GetGame((int)game.ParentId);
+
+                if (parentGame.Team1Id == null)
+                {
+                    parentGame.Team1Id = game.WinnerId;
+                }
+                else if (parentGame.Team2Id == null)
+                {
+                    parentGame.Team2Id = game.WinnerId;
+                }
+
+                //update parent game
+                if (!_gameRepository.UpdateGame(parentGame))
+                {
+                    ModelState.AddModelError("", "Something went wrong updating parent game");
+                    return StatusCode(500, ModelState);
+                }
+
+                // id losera
+                var looserId = teamId == game.Team1Id? game.Team2Id : game.Team1Id;
+
+                var mainRoot = _tournamentRepository.GetTournamentRootGame(game.TournamentId);
+
+                var winnerTreeGameId = mainRoot.Children[0].Id;
+                var rootLooserTree = mainRoot.Children[1];
+
+                var tmpGame = _gameRepository.GetGame(game.Id);
+
+
+                bool isWinnerTree = false;
+
+                while (tmpGame.ParentId.HasValue)
+                {
+                    if(tmpGame.ParentId == winnerTreeGameId)
+                    {
+                        isWinnerTree = true;
+                        break;
+                    }
+
+
+                    tmpGame = tmpGame.Parent;
+
+                }
+
+                // jesli jestesmy w winner tree to loosera trzeba dac do looser tree
+                if (isWinnerTree)
+                {
+                    AddTeamToLooserTree(rootLooserTree, (int)looserId);
+                }
+
+            }
+            else
+            {
+                var tournament = _tournamentRepository.GetTournament(game.TournamentId);
+                tournament.State = "finished";
+                if (!_tournamentRepository.UpdateTournament(tournament))
+                {
+                    ModelState.AddModelError("", "Something went wrong updating tournament");
+                    return StatusCode(500, ModelState);
+                }
+            }
 
             return StatusCode(204, "");
         }
@@ -460,6 +538,53 @@ namespace TournamentApp.Controllers
 
 
             return StatusCode(204, "");
+        }
+
+        private bool AddTeamToLooserTree(Game game, int teamId)
+        {
+            if (game.Children.Count == 0)
+            {
+                if(game.Team1Id == null)
+                {
+                    game.Team1Id = teamId;
+                    _gameRepository.UpdateGame(game);
+                    return true;
+                }       
+            }
+
+            if (game.Children.Count >= 1)
+            {
+                if (AddTeamToLooserTree(game.Children[0], teamId))
+                    return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
+
+            if (game.Children.Count <= 1)
+            {
+                if(game.Team2Id == null)
+                {
+                    game.Team2Id = teamId;
+                    _gameRepository.UpdateGame(game);
+                    return true;
+                }
+            }
+
+            
+
+            if(game.Children.Count == 2)
+            {
+                if (AddTeamToLooserTree(game.Children[1], teamId))
+                    return true;
+            } else
+            {
+                return false;
+            }          
+            return false;
         }
 
         private bool IsSwissRoundComplete(int tournamentId, int currentRound)
