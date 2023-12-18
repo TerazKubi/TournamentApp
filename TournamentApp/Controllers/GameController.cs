@@ -542,16 +542,6 @@ namespace TournamentApp.Controllers
 
         private bool AddTeamToLooserTree(Game game, int teamId)
         {
-            if (game.Children.Count == 0)
-            {
-                if(game.Team1Id == null)
-                {
-                    game.Team1Id = teamId;
-                    _gameRepository.UpdateGame(game);
-                    return true;
-                }       
-            }
-
             if (game.Children.Count >= 1)
             {
                 if (AddTeamToLooserTree(game.Children[0], teamId))
@@ -562,6 +552,26 @@ namespace TournamentApp.Controllers
                 return false;
             }
 
+            if (game.Children.Count == 0)
+            {
+                if(game.Team1Id == null)
+                {
+                    game.Team1Id = teamId;
+                    _gameRepository.UpdateGame(game);
+                    return true;
+                }       
+            }
+
+
+            if (game.Children.Count == 2)
+            {
+                if (AddTeamToLooserTree(game.Children[1], teamId))
+                    return true;
+            }
+            else
+            {
+                return false;
+            }
 
 
             if (game.Children.Count <= 1)
@@ -574,17 +584,10 @@ namespace TournamentApp.Controllers
                 }
             }
 
+            return false;
             
 
-            if(game.Children.Count == 2)
-            {
-                if (AddTeamToLooserTree(game.Children[1], teamId))
-                    return true;
-            } else
-            {
-                return false;
-            }          
-            return false;
+            
         }
 
         private bool IsSwissRoundComplete(int tournamentId, int currentRound)
