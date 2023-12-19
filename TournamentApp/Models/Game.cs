@@ -23,6 +23,8 @@
 
         public int CurrentSet { get; set; }
 
+        public bool IsWinnerTree { get; set; }
+
         //=========================================================================
         //public List<Team> Teams { get; set; } = new List<Team>();
         //public List<Score> Scores { get; set; } = new List<Score>();

@@ -440,13 +440,19 @@ namespace TournamentApp.Controllers
 
                 bool isWinnerTree = false;
 
+                if (tmpGame.Id == winnerTreeGameId) 
+                {
+                    isWinnerTree = true;
+                }
+
+
                 while (tmpGame.ParentId.HasValue)
                 {
                     if(tmpGame.ParentId == winnerTreeGameId)
                     {
                         isWinnerTree = true;
                         break;
-                    }
+                    } 
 
 
                     tmpGame = tmpGame.Parent;
@@ -462,13 +468,63 @@ namespace TournamentApp.Controllers
             }
             else
             {
-                var tournament = _tournamentRepository.GetTournament(game.TournamentId);
-                tournament.State = "finished";
-                if (!_tournamentRepository.UpdateTournament(tournament))
+                if(game.Team1Id == game.Children[0].Team1Id && game.Team2Id == game.Children[0].Team2Id) 
                 {
-                    ModelState.AddModelError("", "Something went wrong updating tournament");
-                    return StatusCode(500, ModelState);
+                    var tournament = _tournamentRepository.GetTournament(game.TournamentId);
+                    tournament.State = "finished";
+                    if (!_tournamentRepository.UpdateTournament(tournament))
+                    {
+                        ModelState.AddModelError("", "Something went wrong updating tournament");
+                        return StatusCode(500, ModelState);
+                    }
+
+                    return StatusCode(204, "");
                 }
+                //handle final game WIN
+                if(game.Team2Id == teamId)
+                {
+                    var oldRootGame = _tournamentRepository.GetTournamentRootGame(game.TournamentId);
+
+                    var newRoot = new Game
+                    {
+                        TournamentId = game.TournamentId,
+                        KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
+                        Round = game.Round + 1,
+                        Team1Id = game.Team1Id,
+                        Team2Id = teamId
+                    };
+
+                    if (!_gameRepository.CreateGame(newRoot))
+                    {
+                        ModelState.AddModelError("", "Something went wrong updating tournament");
+                        return StatusCode(500, ModelState);
+                    }
+
+
+                    oldRootGame.ParentId = newRoot.Id;
+                    newRoot.Children.Add(oldRootGame);
+
+                    _gameRepository.Save2();
+                    
+                    //if (!_gameRepository.UpdateGame(newRoot))
+                    //{
+                    //    ModelState.AddModelError("", "Something went wrong updating tournament");
+                    //    return StatusCode(500, ModelState);
+                    //}
+                } else
+                {
+                    var tournament = _tournamentRepository.GetTournament(game.TournamentId);
+                    tournament.State = "finished";
+                    if (!_tournamentRepository.UpdateTournament(tournament))
+                    {
+                        ModelState.AddModelError("", "Something went wrong updating tournament");
+                        return StatusCode(500, ModelState);
+                    }
+                }
+
+
+
+                
             }
 
             return StatusCode(204, "");
@@ -547,10 +603,7 @@ namespace TournamentApp.Controllers
                 if (AddTeamToLooserTree(game.Children[0], teamId))
                     return true;
             }
-            else
-            {
-                return false;
-            }
+            
 
             if (game.Children.Count == 0)
             {
@@ -568,10 +621,7 @@ namespace TournamentApp.Controllers
                 if (AddTeamToLooserTree(game.Children[1], teamId))
                     return true;
             }
-            else
-            {
-                return false;
-            }
+            
 
 
             if (game.Children.Count <= 1)

@@ -443,7 +443,8 @@ namespace TournamentApp.Controllers
             {
                 KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                 TournamentId = tournamentId,
-                Round = levels.Count + 2
+                Round = levels.Count + 2,
+                IsWinnerTree = false
             };
 
             List<Game> currentLevel = new List<Game>();
@@ -463,7 +464,8 @@ namespace TournamentApp.Controllers
                         {
                             KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                             TournamentId = tournamentId,
-                            Round = parent.Round - 1
+                            Round = parent.Round - 1,
+                            IsWinnerTree = false
                         };
                         parent.Children.Add(child);
                         nextLevel.Add(child);
@@ -476,7 +478,8 @@ namespace TournamentApp.Controllers
                         {
                             KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                             TournamentId = tournamentId,
-                            Round = parent.Round - 1
+                            Round = parent.Round - 1,
+                            IsWinnerTree = false
                         };
                         parent.Children.Add(child);
                         nextLevel.Add(child);
@@ -566,39 +569,8 @@ namespace TournamentApp.Controllers
             if(!_gameRepository.UpdateGamesFromList(roundOneGames)) return false;
 
             return true;
-            //if (node != null)
-            //{
-            //    //if we are in lead node
-            //    if (node.Children.ToList().Count == 0)
-            //    {
-            //        if(teamIdList.Count > 0)
-            //        {
-            //            int randomTeam1IdPosition = randomPositionFromList(teamIdList.Count);
-            //            if(node.Team1Id == null)
-            //                node.Team1Id = teamIdList[randomTeam1IdPosition];
-            //            else
-            //                node.Team2Id = teamIdList[randomTeam1IdPosition];
-            //            teamIdList.RemoveAt(randomTeam1IdPosition);
-            //        }
-
-            //        //if(teamIdList.Count > 0)
-            //        //{
-            //        //    int randomTeam2IdPosition = randomPositionFromList(teamIdList.Count);
-            //        //    node.Team2Id = teamIdList[randomTeam2IdPosition];
-            //        //    teamIdList.RemoveAt(randomTeam2IdPosition);
-            //        //}
-
-
-            //    }
-
-            //    foreach (var game in node.Children.ToList())
-            //    {
-            //        AssignTeamsForLeafNodes(game, teamIdList);
-            //    }
-
-
-
-            //}
+            
+           
         }
         private bool CheckForEarlyAdvance(int tournamentId)
         {
@@ -619,6 +591,8 @@ namespace TournamentApp.Controllers
                     parentGame.Team1Id = teamId;
                 else
                     parentGame.Team2Id = teamId;
+
+                game.State = "finished";
 
                 if(!_gameRepository.UpdateGame(parentGame)) return false;
 

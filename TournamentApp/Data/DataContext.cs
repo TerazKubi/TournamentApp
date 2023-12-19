@@ -160,6 +160,7 @@ namespace TournamentApp.Data
                 entity.Property(g => g.Team1Sets).HasDefaultValue(0);
                 entity.Property(g => g.Team2Sets).HasDefaultValue(0);
                 entity.Property(g => g.CurrentSet).HasDefaultValue(1);
+                entity.Property(g => g.IsWinnerTree).HasDefaultValue(true);
 
                 //games *-1 team
                 entity.HasOne(g => g.Team1)
