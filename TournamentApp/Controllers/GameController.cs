@@ -401,6 +401,9 @@ namespace TournamentApp.Controllers
             game.State = "finished";
             game.WinnerId = teamId;
 
+            int gameId = game.Id;
+
+            //if not final
             if (game.ParentId != null)
             {
                 if (!_gameRepository.GameExists((int)game.ParentId))
@@ -427,40 +430,24 @@ namespace TournamentApp.Controllers
                     return StatusCode(500, ModelState);
                 }
 
+                //add loser to looser tree
+
                 // id losera
                 var looserId = teamId == game.Team1Id? game.Team2Id : game.Team1Id;
 
                 var mainRoot = _tournamentRepository.GetTournamentRootGame(game.TournamentId);
 
-                var winnerTreeGameId = mainRoot.Children[0].Id;
+
+
+
                 var rootLooserTree = mainRoot.Children[1];
 
-                var tmpGame = _gameRepository.GetGame(game.Id);
 
 
-                bool isWinnerTree = false;
 
-                if (tmpGame.Id == winnerTreeGameId) 
-                {
-                    isWinnerTree = true;
-                }
-
-
-                while (tmpGame.ParentId.HasValue)
-                {
-                    if(tmpGame.ParentId == winnerTreeGameId)
-                    {
-                        isWinnerTree = true;
-                        break;
-                    } 
-
-
-                    tmpGame = tmpGame.Parent;
-
-                }
 
                 // jesli jestesmy w winner tree to loosera trzeba dac do looser tree
-                if (isWinnerTree)
+                if (game.IsWinnerTree == 1)
                 {
                     AddTeamToLooserTree(rootLooserTree, (int)looserId);
                 }
@@ -468,6 +455,7 @@ namespace TournamentApp.Controllers
             }
             else
             {
+                //if its FINAL REMATCH end tournament
                 if(game.Team1Id == game.Children[0].Team1Id && game.Team2Id == game.Children[0].Team2Id) 
                 {
                     var tournament = _tournamentRepository.GetTournament(game.TournamentId);
@@ -480,7 +468,7 @@ namespace TournamentApp.Controllers
 
                     return StatusCode(204, "");
                 }
-                //handle final game WIN
+                //handle final game WIN if we need to create a rematch
                 if(game.Team2Id == teamId)
                 {
                     var oldRootGame = _tournamentRepository.GetTournamentRootGame(game.TournamentId);
@@ -506,12 +494,9 @@ namespace TournamentApp.Controllers
 
                     _gameRepository.Save2();
                     
-                    //if (!_gameRepository.UpdateGame(newRoot))
-                    //{
-                    //    ModelState.AddModelError("", "Something went wrong updating tournament");
-                    //    return StatusCode(500, ModelState);
-                    //}
-                } else
+                    
+                } 
+                else //if no need for final rematch end tournament
                 {
                     var tournament = _tournamentRepository.GetTournament(game.TournamentId);
                     tournament.State = "finished";

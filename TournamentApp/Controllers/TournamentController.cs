@@ -444,7 +444,7 @@ namespace TournamentApp.Controllers
                 KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                 TournamentId = tournamentId,
                 Round = levels.Count + 2,
-                IsWinnerTree = false
+                IsWinnerTree = 0
             };
 
             List<Game> currentLevel = new List<Game>();
@@ -465,7 +465,7 @@ namespace TournamentApp.Controllers
                             KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                             TournamentId = tournamentId,
                             Round = parent.Round - 1,
-                            IsWinnerTree = false
+                            IsWinnerTree = 0
                         };
                         parent.Children.Add(child);
                         nextLevel.Add(child);
@@ -479,7 +479,7 @@ namespace TournamentApp.Controllers
                             KeyCode = $"{Guid.NewGuid().ToString("N")}_{DateTime.Now.Ticks}",
                             TournamentId = tournamentId,
                             Round = parent.Round - 1,
-                            IsWinnerTree = false
+                            IsWinnerTree = 0
                         };
                         parent.Children.Add(child);
                         nextLevel.Add(child);
@@ -532,7 +532,7 @@ namespace TournamentApp.Controllers
             if (node == null)
                 return;
 
-            Console.WriteLine($"{node.Round}");
+            Console.WriteLine($"{node.Id}");
             
 
             if(node.Children.ToList().Count >= 1)

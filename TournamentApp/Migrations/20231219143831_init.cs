@@ -327,6 +327,7 @@ namespace TournamentApp.Migrations
                     Team1Sets = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     Team2Sets = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CurrentSet = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    IsWinnerTree = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     TournamentId = table.Column<int>(type: "int", nullable: false),
                     Team1Id = table.Column<int>(type: "int", nullable: true),
                     Team2Id = table.Column<int>(type: "int", nullable: true),
@@ -371,9 +372,8 @@ namespace TournamentApp.Migrations
                 {
                     TournamentId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
-                    id = table.Column<int>(type: "int", nullable: false),
-                    Points = table.Column<int>(type: "int", nullable: false),
-                    HasPause = table.Column<bool>(type: "bit", nullable: false)
+                    Points = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    HasPause = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {

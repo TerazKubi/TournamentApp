@@ -215,10 +215,10 @@ namespace TournamentApp.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
-                    b.Property<bool>("IsWinnerTree")
+                    b.Property<int?>("IsWinnerTree")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("KeyCode")
                         .IsRequired()

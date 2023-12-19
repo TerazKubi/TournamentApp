@@ -10,6 +10,7 @@ using TournamentApp.Repository;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TournamentApp;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -95,6 +96,19 @@ builder.Services.AddCors(options =>
     );
 });
 
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.ClearProviders(); // Clear all existing log providers
+    logging.AddConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+    });
+
+    logging.SetMinimumLevel(LogLevel.Warning); // Set the minimum log level to Error
+});
+
+
 
 var app = builder.Build();
 
@@ -129,7 +143,8 @@ await SeedDataAsync(app);
 //    app.UseSwaggerUI();
 //}
 
-//STATIC IMAGES
+//STATIC IMAGE
+
 app.UseStaticFiles();
 
 app.UseCors();

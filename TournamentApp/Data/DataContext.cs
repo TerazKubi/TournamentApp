@@ -23,10 +23,11 @@ namespace TournamentApp.Data
         public DbSet<SwissElimination> SwissEliminations { get; set; }
         //public DbSet<Score> Scores { get; set; }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    optionsBuilder.UseMySQL("server=localhost;database=tournamentapptest;user=root");
-        //}
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            //optionsBuilder.UseMySQL("server=localhost;database=tournamentapptest;user=root");
+            optionsBuilder.LogTo(Console.WriteLine, LogLevel.Error);
+        }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -160,7 +161,7 @@ namespace TournamentApp.Data
                 entity.Property(g => g.Team1Sets).HasDefaultValue(0);
                 entity.Property(g => g.Team2Sets).HasDefaultValue(0);
                 entity.Property(g => g.CurrentSet).HasDefaultValue(1);
-                entity.Property(g => g.IsWinnerTree).HasDefaultValue(true);
+                entity.Property(g => g.IsWinnerTree).HasDefaultValue(1);
 
                 //games *-1 team
                 entity.HasOne(g => g.Team1)
