@@ -52,7 +52,7 @@ namespace TournamentApp.Dto
         public DateTime StartDate { get; set; }
 
         //public int Round { get; set; }
-
+        public int Round { get; set; }
         public int TournamentId { get; set; }
 
 
