@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 using System.Security.Cryptography;
 using TournamentApp.Dto;
 using TournamentApp.Input;
@@ -42,36 +45,6 @@ namespace TournamentApp.Controllers
             return Ok(users);
         }
 
-
-        //[HttpPost]
-        //[ProducesResponseType(204)]
-        //[ProducesResponseType(400)]
-        //public IActionResult CreateUser([FromBody] UserCreateWrapper userCreate)
-        //{
-        //    if (userCreate == null)
-        //        return BadRequest(ModelState);
-
-        //    //check if already exists
-        //    if(_userRepository.ValidateUser(userCreate.UserCreate.Email))
-        //        return BadRequest(ModelState);
-
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
-
-        //    var userMap = _mapper.Map<User>(userCreate.UserCreate);
-
-        //    //testing creating with DTO
-        //    userMap.PasswordHash = HashPassword(userCreate.Password);
-
-
-        //    if (!_userRepository.CreateUser(userMap))
-        //    {
-        //        ModelState.AddModelError("", "Something went wrong while savin");
-        //        return StatusCode(500, ModelState);
-        //    }
-
-        //    return Ok("Successfully created");
-        //}
 
         
         [HttpGet("{userId}")]
@@ -124,7 +97,9 @@ namespace TournamentApp.Controllers
 
             try
             {
-                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+                //string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+                string FilePath = "/app/wwwroot/Upload/UserImages/";
+                Console.WriteLine($"POST: FilePath {FilePath}");
                 if (!System.IO.Directory.Exists(FilePath))
                 {
                     System.IO.Directory.CreateDirectory(FilePath);
@@ -137,7 +112,19 @@ namespace TournamentApp.Controllers
                 }
                 using(FileStream stream=System.IO.File.Create(ImagePath))
                 {
-                    await imageFile.CopyToAsync(stream);
+                    using (var image = Image.Load(imageFile.OpenReadStream()))
+                    {
+                        // Resize to a specific width and height (e.g., 300x300)
+                        image.Mutate(x => x.Resize(new ResizeOptions
+                        {
+                            Size = new Size(800, 800),
+                            Mode = ResizeMode.Max
+                        }));
+
+                        // Save the resized image
+                        image.Save(stream, new JpegEncoder());
+                    }
+                    //await imageFile.CopyToAsync(stream);
                 }
 
                 var user = _userRepository.GetUser(userId);
@@ -171,10 +158,10 @@ namespace TournamentApp.Controllers
 
             try
             {
-                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
-
+                string FilePath = _environment.WebRootPath + "/Upload/UserImages/";
+                Console.WriteLine($"GET: FilePath {FilePath}");
                 string ImagePath = FilePath + userId + ".png";
-                Console.WriteLine("\n\n ImagePath: " + ImagePath + "\n\n");
+                Console.WriteLine("ImagePath: " + ImagePath);
 
 
                 if (System.IO.File.Exists(ImagePath))
@@ -213,7 +200,7 @@ namespace TournamentApp.Controllers
 
             try
             {
-                string FilePath = _environment.WebRootPath + "\\Upload\\UserImages\\";
+                string FilePath = _environment.WebRootPath + "/Upload/UserImages/";
 
                 string ImagePath = FilePath + userId + ".png";
                 

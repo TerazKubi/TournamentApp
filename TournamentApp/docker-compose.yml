@@ -19,5 +19,10 @@ services:
       DatabaseName: "TournamentAppDB"
     ports:
       - "8080:80"
+    volumes:
+      - userimages:/app/wwwroot
     depends_on: 
       - mssql-server
+
+volumes:
+  userimages:

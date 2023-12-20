@@ -201,6 +201,20 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (tournamentCreate.Tournament.EliminationAlgorithm == EliminationTypes.DoubleElimination && tournamentCreate.teamsIdList.Count <= 2)
+            {
+                ModelState.AddModelError("errorMessage", "For double elimination there has to be more then 2 teams.");
+                return BadRequest(ModelState);
+            }
+
+            if (tournamentCreate.Tournament.EliminationAlgorithm == EliminationTypes.SwissElimination 
+                && tournamentCreate.SwissRounds > tournamentCreate.SwissRounds 
+                && tournamentCreate.teamsIdList.Count % 2 != 0)
+            {
+                ModelState.AddModelError("errorMessage", "For swiss elimination when there is odd team count swiss rounds cant be more than number of teams.");
+                return BadRequest(ModelState);
+            }
+
             if (!_teamRepository.AllTeamsExists(tournamentCreate.teamsIdList))
             {
                 ModelState.AddModelError("errorMessage", "One of the team from teamIdList doesnt exist");

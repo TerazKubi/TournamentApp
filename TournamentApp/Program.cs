@@ -20,17 +20,17 @@ ConfigurationManager configuration = builder.Configuration;
 // Etity framework ===============================================================================================================================================================================
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 
-    //var server = builder.Configuration["DatabaseServer"] ?? "localhost";
-    //var port = builder.Configuration["DatabasePort"] ?? "1433";
-    //var user = builder.Configuration["DatabaseUser"] ?? "SA";
-    //var password = builder.Configuration["DatabasePassword"] ?? "";
-    //var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
+    var server = builder.Configuration["DatabaseServer"] ?? "localhost";
+    var port = builder.Configuration["DatabasePort"] ?? "1433";
+    var user = builder.Configuration["DatabaseUser"] ?? "SA";
+    var password = builder.Configuration["DatabasePassword"] ?? "";
+    var dbName = builder.Configuration["DatabaseName"] ?? "TournamentAppDB";
 
-    //var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
-    //options.UseSqlServer(connectionString);
+    var connectionString = $"Server={server},{port}; Initial Catalog={dbName}; User ID={user}; Password={password}; Encrypt=False;Trust Server Certificate=False;";
+    options.UseSqlServer(connectionString);
 });
 
 
@@ -96,17 +96,7 @@ builder.Services.AddCors(options =>
     );
 });
 
-builder.Host.ConfigureLogging(logging =>
-{
-    logging.ClearProviders(); // Clear all existing log providers
-    logging.AddConsole(options =>
-    {
-        options.IncludeScopes = true;
-        options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
-    });
 
-    logging.SetMinimumLevel(LogLevel.Warning); // Set the minimum log level to Error
-});
 
 
 
