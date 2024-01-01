@@ -26,7 +26,10 @@ namespace TournamentApp.Repository
 
         public Player GetById(int id)
         {
-            return _context.Players.Where(p => p.Id == id).Include(p => p.User).Include(p => p.Team).FirstOrDefault();
+            return _context.Players.Where(p => p.Id == id)
+                .Include(p => p.User)
+                .Include(p => p.Team).ThenInclude(t => t.User)
+                .FirstOrDefault();
         }
 
         public List<Player> GetPlayers()
