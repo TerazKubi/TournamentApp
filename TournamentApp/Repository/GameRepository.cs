@@ -32,13 +32,19 @@ namespace TournamentApp.Repository
 
         public Game GetGame(int id)
         {
-            return _context.Games.Where(g => g.Id == id).Include(g => g.Team1).Include(g => g.Team2).Include(g => g.Tournament)
-                .ThenInclude(t => t.Organizer).FirstOrDefault();
+            return _context.Games.Where(g => g.Id == id)
+                .Include(g => g.Team1).ThenInclude(t => t.User)
+                .Include(g => g.Team2).ThenInclude(t => t.User)
+                .Include(g => g.Tournament).ThenInclude(t => t.Organizer)
+                .FirstOrDefault();
         }
 
         public List<Game> GetGames()
         {
-            return _context.Games.Include(g => g.Team1).Include(g => g.Team2).ToList();
+            return _context.Games
+                .Include(g => g.Team1).ThenInclude(t => t.User)
+                .Include(g => g.Team2).ThenInclude(t => t.User)
+                .ToList();
         }
 
         public bool UpdateGame(Game game)

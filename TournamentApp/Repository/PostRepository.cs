@@ -89,9 +89,12 @@ namespace TournamentApp.Repository
                 .Include(p => p.Author).ThenInclude(a => a.Team)
                 .Include(p => p.Author).ThenInclude(a => a.Organizer)
                 .Include(p => p.Author).ThenInclude(a => a.Player)
-                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt)).ThenInclude(c => c.Author).ThenInclude(a => a.Team)
-                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt)).ThenInclude(c => c.Author).ThenInclude(a => a.Organizer)
-                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt)).ThenInclude(c => c.Author).ThenInclude(a => a.Player)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Team)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Organizer)
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt).Take(2))
+                .ThenInclude(c => c.Author).ThenInclude(a => a.Player)
                 .ToList();
         }
 

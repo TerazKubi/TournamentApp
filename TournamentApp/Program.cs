@@ -149,4 +149,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+Console.WriteLine("APP is running.");
+Console.WriteLine("Version 1.0.1");
 app.Run();

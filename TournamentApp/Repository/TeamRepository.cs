@@ -30,12 +30,13 @@ namespace TournamentApp.Repository
                 .Include(t => t.Players).ThenInclude(p => p.User)
                 .Include(t => t.Team1Games).ThenInclude(t1 => t1.Team2)
                 .Include(t => t.Team2Games).ThenInclude(t2 => t2.Team1)
+                .Include(t => t.User)
                 .FirstOrDefault();
         }
 
         public List<Team> GetTeams()
         {
-            return _context.Teams.Include(t => t.Players).ToList();
+            return _context.Teams.Include(t => t.Players).Include(t => t.User).ToList();
         }
 
         public bool TeamExists(int teamId)

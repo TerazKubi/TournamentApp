@@ -84,6 +84,9 @@ namespace TournamentApp.Dto
         public TeamNoDetailsDto Team2 { get; set; }
         public int? Team2Id { get; set; }
 
+
+        public int Team1Sets { get; set; }
+        public int Team2Sets { get; set; }
         public int? WinnerId { get; set; }
 
         public int? ParentId { get; set; }

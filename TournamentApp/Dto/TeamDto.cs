@@ -16,6 +16,7 @@ namespace TournamentApp.Dto
         public List<GameNoDetailsDto> Team1Games { get; set; } = new List<GameNoDetailsDto>();
         public List<GameNoDetailsDto> Team2Games { get; set; } = new List<GameNoDetailsDto>();
 
+        public UserImageUrlDto User { get; set; }
         public string UserId { get; set; }
     }
 
