@@ -28,7 +28,9 @@ namespace TournamentApp.Controllers
         private readonly UserManager<User> _userManager;
 
         public TournamentController(IMapper mapper, ITournamentRepository tournamentRepository,
-            ITeamRepository teamRepository, IOrganizerRepository organizerRepository, IGameRepository gameRepository, UserManager<User> userManager, ISwissEliminationRepository swissRepository)
+            ITeamRepository teamRepository, 
+            IOrganizerRepository organizerRepository, IGameRepository gameRepository,
+            UserManager<User> userManager, ISwissEliminationRepository swissRepository)
         {
             _mapper = mapper;
             _tournamentRepository = tournamentRepository;
@@ -55,7 +57,7 @@ namespace TournamentApp.Controllers
         [HttpGet("{tournamentId}")]
         [ProducesResponseType(200, Type = typeof(TournamentDto))]
         [ProducesResponseType(400)]
-        public IActionResult GetTournamnetById(int tournamentId)
+        public IActionResult GetTournamentById(int tournamentId)
         {
             if (!_tournamentRepository.TournamentExists(tournamentId))
                 return NotFound();
