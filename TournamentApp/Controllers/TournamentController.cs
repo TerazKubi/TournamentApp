@@ -128,13 +128,15 @@ namespace TournamentApp.Controllers
         [ProducesResponseType(404)]
         public IActionResult DeleteTournament(int tournamentId)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             if (!_tournamentRepository.TournamentExists(tournamentId))
             {
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            
 
             var tournamentToDelete = _tournamentRepository.GetTournament(tournamentId);
 
@@ -146,6 +148,7 @@ namespace TournamentApp.Controllers
             if (!_tournamentRepository.DeleteTournament(tournamentToDelete))
             {
                 ModelState.AddModelError("", "Something went wrong deleting tournament");
+                return BadRequest(ModelState);
             }
 
             return NoContent();
