@@ -213,7 +213,7 @@ namespace TournamentApp.Controllers
             }
 
             if (tournamentCreate.Tournament.EliminationAlgorithm == EliminationTypes.SwissElimination 
-                && tournamentCreate.SwissRounds > tournamentCreate.SwissRounds 
+                && tournamentCreate.SwissRounds > tournamentCreate.Tournament.TeamCount 
                 && tournamentCreate.teamsIdList.Count % 2 != 0)
             {
                 ModelState.AddModelError("errorMessage", "For swiss elimination when there is odd team count swiss rounds cant be more than number of teams.");
@@ -226,11 +226,6 @@ namespace TournamentApp.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!ModelState.IsValid)
-            {
-                ModelState.AddModelError("errorMessage", "modelState error");
-                return BadRequest(ModelState);
-            }
 
             var tournamentMap = _mapper.Map<Tournament>(tournamentCreate.Tournament);
             var teamList = _teamRepository.GetTeamsFromList(tournamentCreate.teamsIdList);          
@@ -242,17 +237,17 @@ namespace TournamentApp.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            
 
-            
-            if(tournamentMap.EliminationAlgorithm == EliminationTypes.SingleElimination)
+
+
+            if (tournamentMap.EliminationAlgorithm == EliminationTypes.SingleElimination)
             {
                 if (!InitSingleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
                 {
                     ModelState.AddModelError("errorMessage", "Error while initializing single elimination tournamnet.");
                     return BadRequest(ModelState);
                 }
-            } 
+            }
             else if (tournamentMap.EliminationAlgorithm == EliminationTypes.DoubleElimination)
             {
                 if (!InitDoubleEliminationTournament(tournamentMap, tournamentCreate.teamsIdList))
@@ -271,7 +266,7 @@ namespace TournamentApp.Controllers
             }
 
 
-            
+
 
 
             return Ok("Successfully created");
@@ -360,6 +355,9 @@ namespace TournamentApp.Controllers
             {
                 if (!_gameRepository.CreateGame(rootGame)) return false;
             }
+            //else {
+            //    return false;
+            //}
 
 
             Shuffle(teamsIdList);
@@ -367,8 +365,8 @@ namespace TournamentApp.Controllers
             if (!AssignTeamsForLeafNodes(tournament.Id, teamsIdList)) return false;
 
 
-            if(!CheckForEarlyAdvance(tournament.Id)) return false;
-            
+            if (!CheckForEarlyAdvance(tournament.Id)) return false;
+
 
             return true;
         }

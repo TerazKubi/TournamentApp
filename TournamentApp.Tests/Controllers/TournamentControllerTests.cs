@@ -12,9 +12,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TournamentApp.Controllers;
 using TournamentApp.Dto;
+using TournamentApp.Input;
 using TournamentApp.Interfaces;
 using TournamentApp.Models;
 using TournamentApp.Repository;
+using Xunit.Abstractions;
 
 namespace TournamentApp.Tests.Controllers
 {
@@ -27,7 +29,9 @@ namespace TournamentApp.Tests.Controllers
         private readonly ISwissEliminationRepository _swissRepository;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
-        public TournamentControllerTests()
+
+        private readonly ITestOutputHelper output;
+        public TournamentControllerTests(ITestOutputHelper output)
         {
             _tournamentRepository = A.Fake<ITournamentRepository>();
             _teamRepository = A.Fake<ITeamRepository>(); ;
@@ -36,6 +40,8 @@ namespace TournamentApp.Tests.Controllers
             _swissRepository = A.Fake<ISwissEliminationRepository>();
             _mapper = A.Fake<IMapper>();
             _userManager = A.Fake<UserManager<User>>();
+
+            this.output = output;
         }
 
         [Fact]
@@ -519,9 +525,128 @@ namespace TournamentApp.Tests.Controllers
 
 
         [Fact]
+        public void TournamentController_CreateTournamenet_ReturnsBadRequest()
+        {
+            //Arange
+            var organizerId = 1;
+            var tournamentCreateWrapper = A.Fake<TournamentCreateWrapper>();
+            var tournamentCreate = A.Fake<TournamentCreate>();
+            tournamentCreate.TeamCount = 6;
+            tournamentCreate.EliminationAlgorithm = EliminationTypes.SingleElimination;
+            tournamentCreate.OrganizerId = organizerId;
+            tournamentCreate.City = "Konin";
+            tournamentCreate.StartDate = new DateTime();
+            tournamentCreate.EndDate = new DateTime();
+
+            tournamentCreateWrapper.teamsIdList = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+            tournamentCreateWrapper.Tournament = tournamentCreate;
+
+            var fakeTournament = A.Fake<Tournament>();
+            var fakeTeamList = A.Fake<List<Team>>();
+
+            var controller = new TournamentController(_mapper, _tournamentRepository,
+                _teamRepository, _organizerRepository,
+                _gameRepository, _userManager, _swissRepository);
+
+
+            A.CallTo(() => _organizerRepository.OrganizerExists(organizerId) ).Returns(true);
+            A.CallTo(() => _teamRepository.AllTeamsExists(tournamentCreateWrapper.teamsIdList)).Returns(true);
+            //A.CallTo(() => _mapper.Map<Tournament>(tournamentCreateWrapper.Tournament)).Returns(fakeTournament);
+
+            //A.CallTo(() => _teamRepository.GetTeamsFromList(tournamentCreateWrapper.teamsIdList)).Returns(fakeTeamList);
+            //A.CallTo(() => _tournamentRepository.CreateTournament(fakeTournament)).Returns(true);
+
+
+            //Act
+            var result = controller.CreateTournament(tournamentCreateWrapper);
+
+
+            //Assert
+            result.Should().NotBeNull().And.BeOfType<BadRequestObjectResult>();
+            var x = result.ToString();
+
+            var okResult = result as BadRequestObjectResult;
+            okResult.Should().NotBeNull();
+        }
+
+
+        [Fact]
         public void TournamentController_CreateTournamenet_ReturnsOk()
         {
-            
+            //Arange
+            var organizerId = 1;
+            var tournamentId = 1;
+            var tournamentCreateWrapper = A.Fake<TournamentCreateWrapper>();
+            var tournamentCreate = A.Fake<TournamentCreate>();
+            tournamentCreate.TeamCount = 4;
+            tournamentCreate.EliminationAlgorithm = EliminationTypes.SingleElimination;
+            tournamentCreate.OrganizerId = organizerId;
+            tournamentCreate.City = "Konin";
+            tournamentCreate.StartDate = new DateTime();
+            tournamentCreate.EndDate = new DateTime();
+
+            tournamentCreateWrapper.teamsIdList = new List<int> { 1, 2, 3, 4 };
+            tournamentCreateWrapper.Tournament = tournamentCreate;
+
+            var fakeTournament = A.Fake<Tournament>();
+            var fakeTeamList = new List<Team>() { A.Fake<Team>(), A.Fake<Team>(), A.Fake<Team>(), A.Fake<Team>()};
+            fakeTournament.Id = tournamentId;
+            fakeTournament.Teams = fakeTeamList;
+
+            var gameList = new List<Game>();
+            for (int i = 1; i <= 4; i++) 
+            {
+                gameList.Add(new Game() { ParentId = i, Parent = new Game() });
+            }
+
+            var controller = new TournamentController(_mapper, _tournamentRepository,
+                _teamRepository, _organizerRepository,
+                _gameRepository, _userManager, _swissRepository);
+
+
+            A.CallTo(() => _organizerRepository.OrganizerExists(organizerId)).Returns(true);
+            A.CallTo(() => _teamRepository.AllTeamsExists(tournamentCreateWrapper.teamsIdList)).Returns(true);
+            A.CallTo(() => _mapper.Map<Tournament>(tournamentCreateWrapper.Tournament)).Returns(fakeTournament);
+
+            A.CallTo(() => _teamRepository.GetTeamsFromList(tournamentCreateWrapper.teamsIdList)).Returns(fakeTeamList);
+            A.CallTo(() => _tournamentRepository.CreateTournament(fakeTournament)).Returns(true);
+
+            A.CallTo(() => _gameRepository.CreateGame(A<Game>.Ignored)).Returns(true);
+
+            A.CallTo(() => _gameRepository.GetRoundOneGames(tournamentId)).Returns(gameList);
+            A.CallTo(() => _gameRepository.UpdateGamesFromList(A<List<Game>>.Ignored)).Returns(true);
+            A.CallTo(() => _gameRepository.UpdateGame(A<Game>.Ignored)).Returns(true);
+
+
+            //Act
+            var result = controller.CreateTournament(tournamentCreateWrapper);
+
+
+            //Assert
+            result.Should().NotBeNull().And.BeOfType<OkObjectResult>();
+
+
+            var okResult = result as OkObjectResult;
+            okResult.Should().NotBeNull();
+
+            //result.Should().BeOfType<BadRequestObjectResult>();
+            //var badRequestResult = result as BadRequestObjectResult;
+
+            //Assert that the result contains the expected error messages
+            //badRequestResult.Should().NotBeNull();
+            //badRequestResult.Value.Should().BeOfType<SerializableError>();
+
+            //var modelState = badRequestResult.Value as SerializableError;
+            //modelState.Should().NotBeNull();
+
+            //Directly access the error messages and log or display them
+            //var errorMessages = modelState.SelectMany(kv => kv.Value as string[]).ToList();
+
+            //Log or display error messages for debugging
+            //foreach (var errorMessage in errorMessages)
+            //    {
+            //        output.WriteLine($"Error Message: {errorMessage}");
+            //    }
         }
     }
 }
