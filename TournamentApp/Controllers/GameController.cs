@@ -158,10 +158,10 @@ namespace TournamentApp.Controllers
             if (game.State == "awaited") game.State = "ongoing";
 
             var tournament = _tournamentRepository.GetTournament(game.TournamentId);
-            if(tournament != null)
+            if(tournament != null && tournament.State == "awaited")
             {
-                if (tournament.State == "awaited") tournament.State = "ongoing";
-                if(!_tournamentRepository.UpdateTournament(tournament))
+                tournament.State = "ongoing";
+                if (!_tournamentRepository.UpdateTournament(tournament))
                 {
                     ModelState.AddModelError("", "Something went wrong updating tournament");
                     return StatusCode(500, ModelState);
